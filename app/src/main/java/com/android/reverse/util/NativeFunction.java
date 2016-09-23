@@ -20,9 +20,9 @@ public class NativeFunction implements MemoryReader {
 	}	
 	
 	public static native ByteBuffer dumpDexFileByClass(Class classInDex,int version);
-	public static native ByteBuffer dumpDexFileByCookie(int cookie,int version);
+	public static native ByteBuffer dumpDexFileByCookie(long cookie, int version);
 	public static native ByteBuffer dumpMemory(int start,int length);
-	private static native DexFileHeadersPointer getHeaderItemPtr(int cookie,int version);
+	private static native DexFileHeadersPointer getHeaderItemPtr(long cookie, int version);
     public static native String getInlineOperation();
     public static native HashMap getSyslinkSnapshot();
 	
@@ -35,7 +35,7 @@ public class NativeFunction implements MemoryReader {
 		return buffer;
 	}
 	
-	public static MemoryDexFileItemPointer queryDexFileItemPointer(int cookie){
+	public static MemoryDexFileItemPointer queryDexFileItemPointer(long cookie){
 		int version = ModuleContext.getInstance().getApiLevel();
 		DexFileHeadersPointer iteminfo = getHeaderItemPtr(cookie,version);
 		MemoryDexFileItemPointer pointer = new MemoryDexFileItemPointer();

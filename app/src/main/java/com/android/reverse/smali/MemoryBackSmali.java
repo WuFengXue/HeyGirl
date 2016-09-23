@@ -56,7 +56,7 @@ public class MemoryBackSmali {
 		return options;
 	}
 
-	public static boolean disassembleDexFile(int mCookie, String outDexName) {
+	public static boolean disassembleDexFile(long mCookie, String outDexName) {
 
 		long startTime = System.currentTimeMillis();
 		Logger.log("start disassemble the mCookie " + mCookie);

@@ -142,6 +142,32 @@ public class RefInvoke {
 		return -1;
 		
 	}
+
+	public static long getFieldLong(String class_name,Object obj, String filedName){
+		try {
+			Class obj_class = Class.forName(class_name);
+			Field field = obj_class.getDeclaredField(filedName);
+			field.setAccessible(true);
+			return field.getLong(obj);
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return -1;
+
+	}
 	
 	
 	public static Object getFieldOjbect(String class_name,Object obj, String filedName){

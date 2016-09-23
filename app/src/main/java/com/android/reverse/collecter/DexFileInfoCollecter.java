@@ -63,7 +63,7 @@ public class DexFileInfoCollecter{
 			DexFileInfo info = null;
 			while(dexinfos.hasNext()){
 				info = dexinfos.next();
-				int cookie = info.getmCookie();
+				long cookie = info.getmCookie();
 				Object obj = RefInvoke.invokeStaticMethod("dalvik.system.DexFile", "defineClass", new Class[]{String.class, ClassLoader.class,int.class,List.class},
 						new Object[]{className,info.getDefineClassLoader(),info.getmCookie(),null});
 				if(obj != null){
@@ -102,7 +102,7 @@ public class DexFileInfoCollecter{
 			public void afterHookedMethod(HookParam param) {
 				// TODO Auto-generated method stub
 				String dexPath = (String) param.args[0];
-				int mCookie = (Integer) param.getResult();
+				long mCookie = (Long) param.getResult();
 				if (mCookie != 0) {
 					dynLoadedDexInfo.put(dexPath, new DexFileInfo(dexPath,mCookie));
 				}
@@ -144,7 +144,7 @@ public class DexFileInfoCollecter{
 		for (int i = 0; i < dexElements.length; i++) {
 			dexFile = (DexFile) RefInvoke.getFieldOjbect("dalvik.system.DexPathList$Element", dexElements[i], "dexFile");
 			String mFileName = (String) RefInvoke.getFieldOjbect("dalvik.system.DexFile", dexFile, "mFileName");
-			int mCookie = RefInvoke.getFieldInt("dalvik.system.DexFile", dexFile, "mCookie");
+			long mCookie = RefInvoke.getFieldLong("dalvik.system.DexFile", dexFile, "mCookie");
 			DexFileInfo dexinfo = new DexFileInfo(mFileName, mCookie, pathClassLoader);
 			dexs.put(mFileName, dexinfo);
 		}
@@ -153,7 +153,7 @@ public class DexFileInfoCollecter{
 	}
 
 	public String[] dumpLoadableClass(String dexPath) {
-		int mCookie = this.getCookie(dexPath);
+		long mCookie = this.getCookie(dexPath);
 		if (mCookie != 0) {
 			return (String[]) RefInvoke.invokeStaticMethod("dalvik.system.DexFile", "getClassNameList", new Class[] { int.class },
 					new Object[] { mCookie });
@@ -168,7 +168,7 @@ public class DexFileInfoCollecter{
 		try {
 			if (!file.exists())
 				file.createNewFile();
-			int mCookie = this.getCookie(dexPath);
+			long mCookie = this.getCookie(dexPath);
 			if (mCookie != 0) {
 				MemoryBackSmali.disassembleDexFile(mCookie, filename);
 			} else {
@@ -188,7 +188,7 @@ public class DexFileInfoCollecter{
 		try {
 			if (!file.exists())
 				file.createNewFile();
-			int mCookie = this.getCookie(dexPath);
+			long mCookie = this.getCookie(dexPath);
 			if (mCookie != 0) {
 				FileOutputStream out = new FileOutputStream(file);
 				ByteBuffer data = NativeFunction.dumpDexFileByCookie(mCookie, ModuleContext.getInstance().getApiLevel());
@@ -218,7 +218,7 @@ public class DexFileInfoCollecter{
 		}
 	}
 
-	private int getCookie(String dexPath) {
+	private long getCookie(String dexPath) {
 
 		if (dynLoadedDexInfo.containsKey(dexPath)) {
 			DexFileInfo dexFileInfo = dynLoadedDexInfo.get(dexPath);
@@ -231,7 +231,7 @@ public class DexFileInfoCollecter{
 				dexFile = (DexFile) RefInvoke.getFieldOjbect("dalvik.system.DexPathList$Element", dexElements[i], "dexFile");
 				String mFileName = (String) RefInvoke.getFieldOjbect("dalvik.system.DexFile", dexFile, "mFileName");
 				if (mFileName.equals(dexPath)) {
-					return RefInvoke.getFieldInt("dalvik.system.DexFile", dexFile, "mCookie");
+					return RefInvoke.getFieldLong("dalvik.system.DexFile", dexFile, "mCookie");
 				}
 
 			}

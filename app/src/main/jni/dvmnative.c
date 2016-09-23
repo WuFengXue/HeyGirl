@@ -464,7 +464,7 @@ static jobject dump_ClassObject_DvmDex_MemMap(JNIEnv* env, jclass obj, jclass ar
     }
 }
 
-static jobject dump_DexFile_mCookie_DexOrJar_memMap(JNIEnv* env, jclass obj, jint cookie, jint version)
+static jobject dump_DexFile_mCookie_DexOrJar_memMap(JNIEnv *env, jclass obj, jlong cookie, jint version)
 {  
     DexOrJar* pDexOrJar = (DexOrJar*) cookie;
     LOGV("the pDexOrJar mCookie=%d",pDexOrJar);
@@ -537,7 +537,7 @@ static jobject dump_Memory(JNIEnv* env, jclass obj, jint start, jint length)
 }
 
 
-static jobject getHeaderItemPtr(JNIEnv* env, jclass obj, jint mCookie, jint version)
+static jobject getHeaderItemPtr(JNIEnv *env, jclass obj, jlong mCookie, jint version)
 {  
 	 DexFile* pDexFile = queryDexFilePoint(mCookie,version);
 	 jclass  dexFileHeadersPointer_class = (*env)->FindClass(env,"com/android/reverse/smali/DexFileHeadersPointer");  
@@ -709,9 +709,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 		return JNI_ERR;
 	}
 	JNINativeMethod gMethods[] = { { "dumpDexFileByClass", "(Ljava/lang/Class;I)Ljava/nio/ByteBuffer;", (void*) dump_ClassObject_DvmDex_MemMap },
-	                               { "dumpDexFileByCookie", "(II)Ljava/nio/ByteBuffer;", (void*) dump_DexFile_mCookie_DexOrJar_memMap },
+	                               { "dumpDexFileByCookie", "(JI)Ljava/nio/ByteBuffer;", (void*) dump_DexFile_mCookie_DexOrJar_memMap },
 	                               { "dumpMemory", "(II)Ljava/nio/ByteBuffer;", (void*) dump_Memory }, 
-	                               { "getHeaderItemPtr", "(II)Lcom/android/reverse/smali/DexFileHeadersPointer;", (void*) getHeaderItemPtr },
+	                               { "getHeaderItemPtr", "(JI)Lcom/android/reverse/smali/DexFileHeadersPointer;", (void*) getHeaderItemPtr },
 	                               { "getInlineOperation", "()Ljava/lang/String;", (void*) getInlineOperation },
                                    { "getSyslinkSnapshot", "()Ljava/util/HashMap;", (void*) getSyslinkSnapshot },
 //                                   { "getMethodInst", "(Ljava/lang/reflect/Method;)Ljava/nio/ByteBuffer;;", (void*) getMethodInst },
