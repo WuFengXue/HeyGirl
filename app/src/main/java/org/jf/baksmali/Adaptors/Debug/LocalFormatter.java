@@ -34,9 +34,10 @@ package org.jf.baksmali.Adaptors.Debug;
 import org.jf.baksmali.Adaptors.ReferenceFormatter;
 import org.jf.util.IndentingWriter;
 
+import java.io.IOException;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 
 public class LocalFormatter {
     /**
@@ -44,11 +45,8 @@ public class LocalFormatter {
      *
      * The written string will be something like:
      *
-     * "localVar":Ljava/lang/String;, "SomeSignature"
-     * "localVar":Ljava/lang/String;
-     * "localVar":V, "SomeSignature"
-     * null:Ljava/lang/String;, "SomeSignature"
-     * null:V, "SomeSignature"
+     * "localVar":Ljava/lang/String;, "SomeSignature" "localVar":Ljava/lang/String; "localVar":V,
+     * "SomeSignature" null:Ljava/lang/String;, "SomeSignature" null:V, "SomeSignature"
      *
      * One of name, type or signature must be non-null
      */

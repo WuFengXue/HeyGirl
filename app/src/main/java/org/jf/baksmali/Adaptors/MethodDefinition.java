@@ -29,6 +29,7 @@
 package org.jf.baksmali.Adaptors;
 
 import com.google.common.collect.ImmutableList;
+
 import org.jf.baksmali.Adaptors.Debug.DebugMethodItem;
 import org.jf.baksmali.Adaptors.Format.InstructionMethodItemFactory;
 import org.jf.baksmali.baksmaliOptions;
@@ -40,7 +41,12 @@ import org.jf.dexlib2.analysis.AnalysisException;
 import org.jf.dexlib2.analysis.AnalyzedInstruction;
 import org.jf.dexlib2.analysis.MethodAnalyzer;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile.InvalidItemIndex;
-import org.jf.dexlib2.iface.*;
+import org.jf.dexlib2.iface.Annotation;
+import org.jf.dexlib2.iface.ExceptionHandler;
+import org.jf.dexlib2.iface.Method;
+import org.jf.dexlib2.iface.MethodImplementation;
+import org.jf.dexlib2.iface.MethodParameter;
+import org.jf.dexlib2.iface.TryBlock;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.OffsetInstruction;
@@ -55,23 +61,35 @@ import org.jf.util.ExceptionWithContext;
 import org.jf.util.IndentingWriter;
 import org.jf.util.SparseIntArray;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Nonnull;
 
 public class MethodDefinition {
-    @Nonnull public final ClassDefinition classDef;
-    @Nonnull public final Method method;
-    @Nonnull public final MethodImplementation methodImpl;
-    @Nonnull public final ImmutableList<Instruction> instructions;
-    @Nonnull public final ImmutableList<MethodParameter> methodParameters;
+    @Nonnull
+    public final ClassDefinition classDef;
+    @Nonnull
+    public final Method method;
+    @Nonnull
+    public final MethodImplementation methodImpl;
+    @Nonnull
+    public final ImmutableList<Instruction> instructions;
+    @Nonnull
+    public final ImmutableList<MethodParameter> methodParameters;
+    @Nonnull
+    private final LabelCache labelCache = new LabelCache();
+    @Nonnull
+    private final SparseIntArray packedSwitchMap;
+    @Nonnull
+    private final SparseIntArray sparseSwitchMap;
+    @Nonnull
+    private final InstructionOffsetMap instructionOffsetMap;
     public RegisterFormatter registerFormatter;
-
-    @Nonnull private final LabelCache labelCache = new LabelCache();
-
-    @Nonnull private final SparseIntArray packedSwitchMap;
-    @Nonnull private final SparseIntArray sparseSwitchMap;
-    @Nonnull private final InstructionOffsetMap instructionOffsetMap;
 
     public MethodDefinition(@Nonnull ClassDefinition classDef, @Nonnull Method method,
                             @Nonnull MethodImplementation methodImpl) {
@@ -90,7 +108,7 @@ public class MethodDefinition {
             instructionOffsetMap = new InstructionOffsetMap(instructions);
 
             //Logger.log("the method:"+method.getDefiningClass()+":"+method.getName());
-            for (int i=0; i<instructions.size(); i++) {
+            for (int i = 0; i < instructions.size(); i++) {
                 Instruction instruction = instructions.get(i);
 
                 Opcode opcode = instruction.getOpcode();
@@ -98,7 +116,7 @@ public class MethodDefinition {
                 if (opcode == Opcode.PACKED_SWITCH) {
                     boolean valid = true;
                     int codeOffset = instructionOffsetMap.getInstructionCodeOffset(i);
-                    int targetOffset = codeOffset + ((OffsetInstruction)instruction).getCodeOffset();
+                    int targetOffset = codeOffset + ((OffsetInstruction) instruction).getCodeOffset();
                     try {
                         targetOffset = findSwitchPayload(targetOffset, Opcode.PACKED_SWITCH_PAYLOAD);
                     } catch (InvalidSwitchPayload ex) {
@@ -110,7 +128,7 @@ public class MethodDefinition {
                 } else if (opcode == Opcode.SPARSE_SWITCH) {
                     boolean valid = true;
                     int codeOffset = instructionOffsetMap.getInstructionCodeOffset(i);
-                    int targetOffset = codeOffset + ((OffsetInstruction)instruction).getCodeOffset();
+                    int targetOffset = codeOffset + ((OffsetInstruction) instruction).getCodeOffset();
                     try {
                         targetOffset = findSwitchPayload(targetOffset, Opcode.SPARSE_SWITCH_PAYLOAD);
                     } catch (InvalidSwitchPayload ex) {
@@ -123,7 +141,7 @@ public class MethodDefinition {
                     }
                 }
             }
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             String methodString;
             try {
                 methodString = ReferenceUtil.getMethodDescriptor(method);
@@ -141,7 +159,7 @@ public class MethodDefinition {
         writer.write(method.getName());
         writer.write("(");
         ImmutableList<MethodParameter> methodParameters = ImmutableList.copyOf(method.getParameters());
-        for (MethodParameter parameter: methodParameters) {
+        for (MethodParameter parameter : methodParameters) {
             writer.write(parameter.getType());
         }
         writer.write(")");
@@ -155,6 +173,49 @@ public class MethodDefinition {
         writer.write(".end method\n");
     }
 
+    private static void writeAccessFlags(IndentingWriter writer, int accessFlags)
+            throws IOException {
+        for (AccessFlags accessFlag : AccessFlags.getAccessFlagsForMethod(accessFlags)) {
+            writer.write(accessFlag.toString());
+            writer.write(' ');
+        }
+    }
+
+    private static void writeParameters(IndentingWriter writer, Method method,
+                                        List<? extends MethodParameter> parameters,
+                                        baksmaliOptions options) throws IOException {
+        boolean isStatic = AccessFlags.STATIC.isSet(method.getAccessFlags());
+        int registerNumber = isStatic ? 0 : 1;
+        for (MethodParameter parameter : parameters) {
+            String parameterType = parameter.getType();
+            String parameterName = parameter.getName();
+            Collection<? extends Annotation> annotations = parameter.getAnnotations();
+            if (parameterName != null || annotations.size() != 0) {
+                writer.write(".param p");
+                writer.printSignedIntAsDec(registerNumber);
+
+                if (parameterName != null && options.outputDebugInfo) {
+                    writer.write(", ");
+                    ReferenceFormatter.writeStringReference(writer, parameterName);
+                }
+                writer.write("    # ");
+                writer.write(parameterType);
+                writer.write("\n");
+                if (annotations.size() > 0) {
+                    writer.indent(4);
+                    AnnotationFormatter.writeTo(writer, annotations);
+                    writer.deindent(4);
+                    writer.write(".end param\n");
+                }
+            }
+
+            registerNumber++;
+            if (TypeUtils.isWideType(parameterType)) {
+                registerNumber++;
+            }
+        }
+    }
+
     public void writeTo(IndentingWriter writer) throws IOException {
         int parameterRegisterCount = 0;
         if (!AccessFlags.STATIC.isSet(method.getAccessFlags())) {
@@ -165,7 +226,7 @@ public class MethodDefinition {
         writeAccessFlags(writer, method.getAccessFlags());
         writer.write(method.getName());
         writer.write("(");
-        for (MethodParameter parameter: methodParameters) {
+        for (MethodParameter parameter : methodParameters) {
             String type = parameter.getType();
             writer.write(type);
             parameterRegisterCount++;
@@ -198,7 +259,7 @@ public class MethodDefinition {
         writer.write('\n');
 
         List<MethodItem> methodItems = getMethodItems();
-        for (MethodItem methodItem: methodItems) {
+        for (MethodItem methodItem : methodItems) {
             if (methodItem.writeTo(writer)) {
                 writer.write('\n');
             }
@@ -236,50 +297,8 @@ public class MethodDefinition {
         }
     }
 
-    private static void writeAccessFlags(IndentingWriter writer, int accessFlags)
-            throws IOException {
-        for (AccessFlags accessFlag: AccessFlags.getAccessFlagsForMethod(accessFlags)) {
-            writer.write(accessFlag.toString());
-            writer.write(' ');
-        }
-    }
-
-    private static void writeParameters(IndentingWriter writer, Method method,
-                                        List<? extends MethodParameter> parameters,
-                                        baksmaliOptions options) throws IOException {
-        boolean isStatic = AccessFlags.STATIC.isSet(method.getAccessFlags());
-        int registerNumber = isStatic?0:1;
-        for (MethodParameter parameter: parameters) {
-            String parameterType = parameter.getType();
-            String parameterName = parameter.getName();
-            Collection<? extends Annotation> annotations = parameter.getAnnotations();
-            if (parameterName != null || annotations.size() != 0) {
-                writer.write(".param p");
-                writer.printSignedIntAsDec(registerNumber);
-
-                if (parameterName != null && options.outputDebugInfo) {
-                    writer.write(", ");
-                    ReferenceFormatter.writeStringReference(writer, parameterName);
-                }
-                writer.write("    # ");
-                writer.write(parameterType);
-                writer.write("\n");
-                if (annotations.size() > 0) {
-                    writer.indent(4);
-                    AnnotationFormatter.writeTo(writer, annotations);
-                    writer.deindent(4);
-                    writer.write(".end param\n");
-                }
-            }
-
-            registerNumber++;
-            if (TypeUtils.isWideType(parameterType)) {
-                registerNumber++;
-            }
-        }
-    }
-
-    @Nonnull public LabelCache getLabelCache() {
+    @Nonnull
+    public LabelCache getLabelCache() {
         return labelCache;
     }
 
@@ -309,7 +328,7 @@ public class MethodDefinition {
             setLabelSequentialNumbers();
         }
 
-        for (LabelMethodItem labelMethodItem: labelCache.getLabels()) {
+        for (LabelMethodItem labelMethodItem : labelCache.getLabels()) {
             methodItems.add(labelMethodItem);
         }
 
@@ -319,7 +338,7 @@ public class MethodDefinition {
     }
 
     private boolean needsAnalyzed() {
-        for (Instruction instruction: methodImpl.getInstructions()) {
+        for (Instruction instruction : methodImpl.getInstructions()) {
             if (instruction.getOpcode().odexOnly()) {
                 return true;
             }
@@ -329,7 +348,7 @@ public class MethodDefinition {
 
     private void addInstructionMethodItems(List<MethodItem> methodItems) {
         int currentCodeAddress = 0;
-        for (int i=0; i<instructions.size(); i++) {
+        for (int i = 0; i < instructions.size(); i++) {
             Instruction instruction = instructions.get(i);
 
             MethodItem methodItem = InstructionMethodItemFactory.makeInstructionFormatMethodItem(this,
@@ -364,7 +383,7 @@ public class MethodDefinition {
                 if (opcode.referenceType == ReferenceType.METHOD) {
                     MethodReference methodReference = null;
                     try {
-                        methodReference = (MethodReference)((ReferenceInstruction)instruction).getReference();
+                        methodReference = (MethodReference) ((ReferenceInstruction) instruction).getReference();
                     } catch (InvalidItemIndex ex) {
                         // just ignore it for now. We'll deal with it later, when processing the instructions
                         // themselves
@@ -401,7 +420,7 @@ public class MethodDefinition {
         List<AnalyzedInstruction> instructions = methodAnalyzer.getAnalyzedInstructions();
 
         int currentCodeAddress = 0;
-        for (int i=0; i<instructions.size(); i++) {
+        for (int i = 0; i < instructions.size(); i++) {
             AnalyzedInstruction instruction = instructions.get(i);
 
             MethodItem methodItem = InstructionMethodItemFactory.makeInstructionFormatMethodItem(
@@ -459,7 +478,7 @@ public class MethodDefinition {
         int lastInstructionAddress = instructionOffsetMap.getInstructionCodeOffset(instructions.size() - 1);
         int codeSize = lastInstructionAddress + instructions.get(instructions.size() - 1).getCodeUnits();
 
-        for (TryBlock<? extends ExceptionHandler> tryBlock: tryBlocks) {
+        for (TryBlock<? extends ExceptionHandler> tryBlock : tryBlocks) {
             int startAddress = tryBlock.getStartCodeAddress();
             int endAddress = startAddress + tryBlock.getCodeUnitCount();
 
@@ -483,7 +502,7 @@ public class MethodDefinition {
             int lastCoveredIndex = instructionOffsetMap.getInstructionIndexAtCodeOffset(endAddress - 1, false);
             int lastCoveredAddress = instructionOffsetMap.getInstructionCodeOffset(lastCoveredIndex);
 
-            for (ExceptionHandler handler: tryBlock.getExceptionHandlers()) {
+            for (ExceptionHandler handler : tryBlock.getExceptionHandlers()) {
                 int handlerAddress = handler.getHandlerCodeAddress();
                 if (handlerAddress >= codeSize) {
                     throw new ExceptionWithContext(
@@ -499,7 +518,7 @@ public class MethodDefinition {
     }
 
     private void addDebugInfo(final List<MethodItem> methodItems) {
-        for (DebugItem debugItem: methodImpl.getDebugItems()) {
+        for (DebugItem debugItem : methodImpl.getDebugItems()) {
             methodItems.add(DebugMethodItem.build(registerFormatter, debugItem));
         }
     }
@@ -511,7 +530,7 @@ public class MethodDefinition {
         //sort the labels by their location in the method
         Collections.sort(sortedLabels);
 
-        for (LabelMethodItem labelMethodItem: sortedLabels) {
+        for (LabelMethodItem labelMethodItem : sortedLabels) {
             Integer labelSequence = nextLabelSequenceByType.get(labelMethodItem.getLabelPrefix());
             if (labelSequence == null) {
                 labelSequence = 0;

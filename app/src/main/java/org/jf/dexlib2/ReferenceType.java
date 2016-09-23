@@ -31,7 +31,11 @@
 
 package org.jf.dexlib2;
 
-import org.jf.dexlib2.iface.reference.*;
+import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.Reference;
+import org.jf.dexlib2.iface.reference.StringReference;
+import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.util.ExceptionWithContext;
 
 public final class ReferenceType {
@@ -40,6 +44,9 @@ public final class ReferenceType {
     public static final int FIELD = 2;
     public static final int METHOD = 3;
     public static final int NONE = 4;
+
+    private ReferenceType() {
+    }
 
     public static String toString(int referenceType) {
         switch (referenceType) {
@@ -71,9 +78,8 @@ public final class ReferenceType {
     }
 
     /**
-     * Validate a specific reference type. Note that the NONE placeholder is specifically not considered valid here.
-     *
-     * @throws InvalidReferenceTypeException
+     * Validate a specific reference type. Note that the NONE placeholder is specifically not
+     * considered valid here.
      */
     public static void validateReferenceType(int referenceType) {
         if (referenceType < 0 || referenceType > 3) {
@@ -98,6 +104,4 @@ public final class ReferenceType {
             return referenceType;
         }
     }
-
-    private ReferenceType() {}
 }

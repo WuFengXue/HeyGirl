@@ -31,9 +31,11 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import com.android.reverse.util.Logger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
+
+import com.android.reverse.util.Logger;
+
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.dexbacked.raw.MethodIdItem;
 import org.jf.dexlib2.dexbacked.raw.ProtoIdItem;
@@ -46,24 +48,24 @@ import org.jf.dexlib2.iface.Method;
 import org.jf.dexlib2.iface.MethodParameter;
 import org.jf.util.AbstractForwardSequentialList;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public class DexBackedMethod extends BaseMethodReference implements Method {
-    @Nonnull public final DexBackedDexFile dexFile;
-    @Nonnull public final DexBackedClassDef classDef;
+    @Nonnull
+    public final DexBackedDexFile dexFile;
+    @Nonnull
+    public final DexBackedClassDef classDef;
 
     public final int accessFlags;
-
+    public final int methodIndex;
     private final int codeOffset;
     private final int parameterAnnotationSetListOffset;
     private final int methodAnnotationSetOffset;
-
-    public final int methodIndex;
-
     private int methodIdItemOffset;
     private int protoIdItemOffset;
     private int parametersOffset = -1;
@@ -80,7 +82,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
         this.methodIndex = methodIndexDiff + previousMethodIndex;
         this.accessFlags = reader.readSmallUleb128();
         this.codeOffset = reader.readSmallUleb128();
-        Logger.log("the codeoffset :" +this.codeOffset);
+        Logger.log("the codeoffset :" + this.codeOffset);
         this.methodAnnotationSetOffset = 0;
         this.parameterAnnotationSetListOffset = 0;
     }
@@ -98,7 +100,7 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
         int methodIndexDiff = reader.readLargeUleb128();
         this.methodIndex = methodIndexDiff + previousMethodIndex;
         this.accessFlags = reader.readSmallUleb128();
-        
+
         //undo this data is error, the code 
         this.codeOffset = reader.readSmallUleb128();
         //end
@@ -106,9 +108,34 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
         this.parameterAnnotationSetListOffset = paramaterAnnotationIterator.seekTo(methodIndex);
     }
 
-    public int getMethodIndex() { return methodIndex; }
-    @Nonnull @Override public String getDefiningClass() { return classDef.getType(); }
-    @Override public int getAccessFlags() { return accessFlags; }
+    /**
+     * Skips the reader over the specified number of encoded_method structures
+     *
+     * @param reader The reader to skip
+     * @param count  The number of encoded_method structures to skip over
+     */
+    public static void skipMethods(@Nonnull DexReader reader, int count) {
+        for (int i = 0; i < count; i++) {
+            reader.skipUleb128();
+            reader.skipUleb128();
+            reader.skipUleb128();
+        }
+    }
+
+    public int getMethodIndex() {
+        return methodIndex;
+    }
+
+    @Nonnull
+    @Override
+    public String getDefiningClass() {
+        return classDef.getType();
+    }
+
+    @Override
+    public int getAccessFlags() {
+        return accessFlags;
+    }
 
     @Nonnull
     @Override
@@ -130,13 +157,16 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
             final List<String> parameterTypes = getParameterTypes();
 
             return new AbstractForwardSequentialList<MethodParameter>() {
-                @Nonnull @Override public Iterator<MethodParameter> iterator() {
+                @Nonnull
+                @Override
+                public Iterator<MethodParameter> iterator() {
                     return new ParameterIterator(parameterTypes,
                             getParameterAnnotations(),
                             getParameterNames());
                 }
 
-                @Override public int size() {
+                @Override
+                public int size() {
                     return parameterTypes.size();
                 }
             };
@@ -169,9 +199,13 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
                 @Nonnull
                 @Override
                 public String readItem(final int index) {
-                    return dexFile.getType(dexFile.readUshort(paramListStart + 2*index));
+                    return dexFile.getType(dexFile.readUshort(paramListStart + 2 * index));
                 }
-                @Override public int size() { return parameterCount; }
+
+                @Override
+                public int size() {
+                    return parameterCount;
+                }
             };
         }
         return ImmutableList.of();
@@ -212,19 +246,5 @@ public class DexBackedMethod extends BaseMethodReference implements Method {
             parametersOffset = dexFile.readSmallUint(getProtoIdItemOffset() + ProtoIdItem.PARAMETERS_OFFSET);
         }
         return parametersOffset;
-    }
-
-    /**
-     * Skips the reader over the specified number of encoded_method structures
-     *
-     * @param reader The reader to skip
-     * @param count The number of encoded_method structures to skip over
-     */
-    public static void skipMethods(@Nonnull DexReader reader, int count) {
-        for (int i=0; i<count; i++) {
-            reader.skipUleb128();
-            reader.skipUleb128();
-            reader.skipUleb128();
-        }
     }
 }

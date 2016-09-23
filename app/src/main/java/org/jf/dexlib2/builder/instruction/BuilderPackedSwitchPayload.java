@@ -33,20 +33,23 @@ package org.jf.dexlib2.builder.instruction;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.builder.BuilderSwitchPayload;
 import org.jf.dexlib2.builder.Label;
 import org.jf.dexlib2.iface.instruction.formats.PackedSwitchPayload;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 public class BuilderPackedSwitchPayload extends BuilderSwitchPayload implements PackedSwitchPayload {
     public static final Opcode OPCODE = Opcode.PACKED_SWITCH_PAYLOAD;
 
-    @Nonnull protected final List<BuilderSwitchElement> switchElements;
+    @Nonnull
+    protected final List<BuilderSwitchElement> switchElements;
 
     public BuilderPackedSwitchPayload(final int startKey,
                                       @Nullable List<? extends Label> switchElements) {
@@ -56,14 +59,25 @@ public class BuilderPackedSwitchPayload extends BuilderSwitchPayload implements 
         } else {
             this.switchElements = Lists.newArrayList();
             int key = startKey;
-            for (Label target: switchElements) {
+            for (Label target : switchElements) {
                 this.switchElements.add(new BuilderSwitchElement(this, key++, target));
             }
         }
     }
 
-    @Nonnull @Override public List<BuilderSwitchElement> getSwitchElements() { return switchElements; }
+    @Nonnull
+    @Override
+    public List<BuilderSwitchElement> getSwitchElements() {
+        return switchElements;
+    }
 
-    @Override public int getCodeUnits() { return 4 + switchElements.size() * 2; }
-    @Override public Format getFormat() { return OPCODE.format; }
+    @Override
+    public int getCodeUnits() {
+        return 4 + switchElements.size() * 2;
+    }
+
+    @Override
+    public Format getFormat() {
+        return OPCODE.format;
+    }
 }

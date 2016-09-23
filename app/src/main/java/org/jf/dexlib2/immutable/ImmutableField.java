@@ -34,6 +34,7 @@ package org.jf.dexlib2.immutable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
+
 import org.jf.dexlib2.base.reference.BaseFieldReference;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.Field;
@@ -43,17 +44,36 @@ import org.jf.dexlib2.immutable.value.ImmutableEncodedValueFactory;
 import org.jf.util.ImmutableConverter;
 import org.jf.util.ImmutableUtils;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collection;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public class ImmutableField extends BaseFieldReference implements Field {
-    @Nonnull protected final String definingClass;
-    @Nonnull protected final String name;
-    @Nonnull protected final String type;
+    private static final ImmutableConverter<ImmutableField, Field> CONVERTER =
+            new ImmutableConverter<ImmutableField, Field>() {
+                @Override
+                protected boolean isImmutable(@Nonnull Field item) {
+                    return item instanceof ImmutableField;
+                }
+
+                @Nonnull
+                @Override
+                protected ImmutableField makeImmutable(@Nonnull Field item) {
+                    return ImmutableField.of(item);
+                }
+            };
+    @Nonnull
+    protected final String definingClass;
+    @Nonnull
+    protected final String name;
+    @Nonnull
+    protected final String type;
     protected final int accessFlags;
-    @Nullable protected final ImmutableEncodedValue initialValue;
-    @Nonnull protected final ImmutableSet<? extends ImmutableAnnotation> annotations;
+    @Nullable
+    protected final ImmutableEncodedValue initialValue;
+    @Nonnull
+    protected final ImmutableSet<? extends ImmutableAnnotation> annotations;
 
     public ImmutableField(@Nonnull String definingClass,
                           @Nonnull String name,
@@ -84,8 +104,8 @@ public class ImmutableField extends BaseFieldReference implements Field {
     }
 
     public static ImmutableField of(Field field) {
-        if (field instanceof  ImmutableField) {
-            return (ImmutableField)field;
+        if (field instanceof ImmutableField) {
+            return (ImmutableField) field;
         }
         return new ImmutableField(
                 field.getDefiningClass(),
@@ -96,29 +116,42 @@ public class ImmutableField extends BaseFieldReference implements Field {
                 field.getAnnotations());
     }
 
-    @Nonnull @Override public String getDefiningClass() { return definingClass; }
-    @Nonnull @Override public String getName() { return name; }
-    @Nonnull @Override public String getType() { return type; }
-    @Override public int getAccessFlags() { return accessFlags; }
-    @Override public EncodedValue getInitialValue() { return initialValue;}
-    @Nonnull @Override public ImmutableSet<? extends ImmutableAnnotation> getAnnotations() { return annotations; }
-
     @Nonnull
     public static ImmutableSortedSet<ImmutableField> immutableSetOf(@Nullable Iterable<? extends Field> list) {
         return CONVERTER.toSortedSet(Ordering.natural(), list);
     }
 
-    private static final ImmutableConverter<ImmutableField, Field> CONVERTER =
-            new ImmutableConverter<ImmutableField, Field>() {
-                @Override
-                protected boolean isImmutable(@Nonnull Field item) {
-                    return item instanceof ImmutableField;
-                }
+    @Nonnull
+    @Override
+    public String getDefiningClass() {
+        return definingClass;
+    }
 
-                @Nonnull
-                @Override
-                protected ImmutableField makeImmutable(@Nonnull Field item) {
-                    return ImmutableField.of(item);
-                }
-            };
+    @Nonnull
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Nonnull
+    @Override
+    public String getType() {
+        return type;
+    }
+
+    @Override
+    public int getAccessFlags() {
+        return accessFlags;
+    }
+
+    @Override
+    public EncodedValue getInitialValue() {
+        return initialValue;
+    }
+
+    @Nonnull
+    @Override
+    public ImmutableSet<? extends ImmutableAnnotation> getAnnotations() {
+        return annotations;
+    }
 }

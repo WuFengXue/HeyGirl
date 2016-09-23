@@ -32,20 +32,23 @@
 package org.jf.dexlib2.immutable.instruction;
 
 import com.google.common.collect.ImmutableList;
+
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.formats.PackedSwitchPayload;
 import org.jf.util.ImmutableUtils;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 public class ImmutablePackedSwitchPayload extends ImmutableInstruction implements PackedSwitchPayload {
     public static final Opcode OPCODE = Opcode.PACKED_SWITCH_PAYLOAD;
 
-    @Nonnull protected final ImmutableList<? extends ImmutableSwitchElement> switchElements;
+    @Nonnull
+    protected final ImmutableList<? extends ImmutableSwitchElement> switchElements;
 
     public ImmutablePackedSwitchPayload(@Nullable List<? extends SwitchElement> switchElements) {
         super(OPCODE);
@@ -62,14 +65,25 @@ public class ImmutablePackedSwitchPayload extends ImmutableInstruction implement
     @Nonnull
     public static ImmutablePackedSwitchPayload of(PackedSwitchPayload instruction) {
         if (instruction instanceof ImmutablePackedSwitchPayload) {
-            return (ImmutablePackedSwitchPayload)instruction;
+            return (ImmutablePackedSwitchPayload) instruction;
         }
         return new ImmutablePackedSwitchPayload(
                 instruction.getSwitchElements());
     }
 
-    @Nonnull @Override public List<? extends SwitchElement> getSwitchElements() { return switchElements; }
+    @Nonnull
+    @Override
+    public List<? extends SwitchElement> getSwitchElements() {
+        return switchElements;
+    }
 
-    @Override public int getCodeUnits() { return 4 + switchElements.size() * 2; }
-    @Override public Format getFormat() { return OPCODE.format; }
+    @Override
+    public int getCodeUnits() {
+        return 4 + switchElements.size() * 2;
+    }
+
+    @Override
+    public Format getFormat() {
+        return OPCODE.format;
+    }
 }

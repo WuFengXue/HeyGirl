@@ -32,10 +32,12 @@
 package org.jf.dexlib2;
 
 import com.google.common.collect.Maps;
+
 import org.jf.util.ExceptionWithContext;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
+
+import javax.annotation.Nullable;
 
 public class VerificationError {
     public static final int GENERIC = 1;

@@ -29,28 +29,44 @@
 package org.jf.smali;
 
 import com.google.common.collect.Lists;
+
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.Token;
 import org.antlr.runtime.TokenSource;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.jf.dexlib2.writer.builder.DexBuilder;
 import org.jf.dexlib2.writer.io.FileDataStore;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.SmaliHelpFormatter;
 
-import javax.annotation.Nonnull;
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import javax.annotation.Nonnull;
+
 /**
- * Main class for smali. It recognizes enough options to be able to dispatch
- * to the right "actual" main.
+ * Main class for smali. It recognizes enough options to be able to dispatch to the right "actual"
+ * main.
  */
 public class main {
 
@@ -119,7 +135,7 @@ public class main {
 
         Option[] options = commandLine.getOptions();
 
-        for (int i=0; i<options.length; i++) {
+        for (int i = 0; i < options.length; i++) {
             Option option = options[i];
             String opt = option.getOpt();
 
@@ -167,18 +183,18 @@ public class main {
         try {
             LinkedHashSet<File> filesToProcess = new LinkedHashSet<File>();
 
-            for (String arg: remainingArgs) {
-                    File argFile = new File(arg);
+            for (String arg : remainingArgs) {
+                File argFile = new File(arg);
 
-                    if (!argFile.exists()) {
-                        throw new RuntimeException("Cannot find file or directory \"" + arg + "\"");
-                    }
+                if (!argFile.exists()) {
+                    throw new RuntimeException("Cannot find file or directory \"" + arg + "\"");
+                }
 
-                    if (argFile.isDirectory()) {
-                        getSmaliFilesInDir(argFile, filesToProcess);
-                    } else if (argFile.isFile()) {
-                        filesToProcess.add(argFile);
-                    }
+                if (argFile.isDirectory()) {
+                    getSmaliFilesInDir(argFile, filesToProcess);
+                } else if (argFile.isFile()) {
+                    filesToProcess.add(argFile);
+                }
             }
 
             if (jobs <= 0) {
@@ -198,17 +214,18 @@ public class main {
             final boolean finalPrintTokens = printTokens;
             final boolean finalAllowOdex = allowOdex;
             final int finalApiLevel = apiLevel;
-            for (final File file: filesToProcess) {
+            for (final File file : filesToProcess) {
                 tasks.add(executor.submit(new Callable<Boolean>() {
-                    @Override public Boolean call() throws Exception {
+                    @Override
+                    public Boolean call() throws Exception {
                         return assembleSmaliFile(file, dexBuilder, finalVerboseErrors, finalPrintTokens,
                                 finalAllowOdex, finalApiLevel);
                     }
                 }));
             }
 
-            for (Future<Boolean> task: tasks) {
-                while(true) {
+            for (Future<Boolean> task : tasks) {
+                while (true) {
                     try {
                         if (!task.get()) {
                             errors = true;
@@ -241,7 +258,7 @@ public class main {
     private static void getSmaliFilesInDir(@Nonnull File dir, @Nonnull Set<File> smaliFiles) {
         File[] files = dir.listFiles();
         if (files != null) {
-            for(File file: files) {
+            for (File file : files) {
                 if (file.isDirectory()) {
                     getSmaliFilesInDir(file, smaliFiles);
                 } else if (file.getName().endsWith(".smali")) {
@@ -262,13 +279,13 @@ public class main {
         InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
 
         lexer = new smaliFlexLexer(reader);
-        ((smaliFlexLexer)lexer).setSourceFile(smaliFile);
-        tokens = new CommonTokenStream((TokenSource)lexer);
+        ((smaliFlexLexer) lexer).setSourceFile(smaliFile);
+        tokens = new CommonTokenStream((TokenSource) lexer);
 
         if (printTokens) {
             tokens.getTokens();
-            
-            for (int i=0; i<tokens.size(); i++) {
+
+            for (int i = 0; i < tokens.size(); i++) {
                 Token token = tokens.get(i);
                 if (token.getChannel() == smaliParser.HIDDEN) {
                     continue;
@@ -317,7 +334,7 @@ public class main {
         formatter.setWidth(consoleWidth);
 
         formatter.printHelp("java -jar smali.jar [options] [--] [<smali-file>|folder]*",
-                "assembles a set of smali files into a dex file", basicOptions, printDebugOptions?debugOptions:null);
+                "assembles a set of smali files into a dex file", basicOptions, printDebugOptions ? debugOptions : null);
     }
 
     private static void usage() {
@@ -388,12 +405,12 @@ public class main {
         debugOptions.addOption(verboseErrorsOption);
         debugOptions.addOption(printTokensOption);
 
-        for (Object option: basicOptions.getOptions()) {
-            options.addOption((Option)option);
+        for (Object option : basicOptions.getOptions()) {
+            options.addOption((Option) option);
         }
 
-        for (Object option: debugOptions.getOptions()) {
-            options.addOption((Option)option);
+        for (Object option : debugOptions.getOptions()) {
+            options.addOption((Option) option);
         }
     }
 }

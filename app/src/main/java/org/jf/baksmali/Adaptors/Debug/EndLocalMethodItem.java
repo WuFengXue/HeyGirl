@@ -35,15 +35,18 @@ import org.jf.baksmali.Adaptors.RegisterFormatter;
 import org.jf.dexlib2.iface.debug.EndLocal;
 import org.jf.util.IndentingWriter;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 
+import javax.annotation.Nonnull;
+
 public class EndLocalMethodItem extends DebugMethodItem {
-    @Nonnull private final EndLocal endLocal;
-    @Nonnull private final RegisterFormatter registerFormatter;
+    @Nonnull
+    private final EndLocal endLocal;
+    @Nonnull
+    private final RegisterFormatter registerFormatter;
 
     public EndLocalMethodItem(int codeAddress, int sortOrder, @Nonnull RegisterFormatter registerFormatter,
-                                @Nonnull EndLocal endLocal) {
+                              @Nonnull EndLocal endLocal) {
         super(codeAddress, sortOrder);
         this.endLocal = endLocal;
         this.registerFormatter = registerFormatter;

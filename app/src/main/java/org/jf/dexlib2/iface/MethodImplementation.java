@@ -34,8 +34,9 @@ package org.jf.dexlib2.iface;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.instruction.Instruction;
 
-import javax.annotation.Nonnull;
 import java.util.List;
+
+import javax.annotation.Nonnull;
 
 /**
  * This class represents the implementation details of a method.
@@ -53,34 +54,39 @@ public interface MethodImplementation {
      *
      * @return An Iterable of the instructions in this method
      */
-    @Nonnull Iterable<? extends Instruction> getInstructions();
+    @Nonnull
+    Iterable<? extends Instruction> getInstructions();
 
     /**
      * Gets a list of the try blocks defined for this method.
      *
-     * Try blocks may overlap freely, and do not need to be strictly nested, as in java. This is a more relaxed
-     * requirement than specified by the dex format, where try blocks may not overlap, and must be specified in
-     * ascending order. When writing to a dex file, the try blocks will be massaged into the appropriate format.
+     * Try blocks may overlap freely, and do not need to be strictly nested, as in java. This is a
+     * more relaxed requirement than specified by the dex format, where try blocks may not overlap,
+     * and must be specified in ascending order. When writing to a dex file, the try blocks will be
+     * massaged into the appropriate format.
      *
-     * In any region where there are overlapping try blocks, set of exception handlers for the overlapping region will
-     * consist of the union of all handlers in any try block that covers that region.
+     * In any region where there are overlapping try blocks, set of exception handlers for the
+     * overlapping region will consist of the union of all handlers in any try block that covers
+     * that region.
      *
-     * If multiple overlapping try blocks define a handler for the same exception type, or define a catch-all
-     * handler, then those duplicate handlers must use the same handler offset.
+     * If multiple overlapping try blocks define a handler for the same exception type, or define a
+     * catch-all handler, then those duplicate handlers must use the same handler offset.
      *
      * @return A list of the TryBlock items
      */
-    @Nonnull List<? extends TryBlock<? extends ExceptionHandler>> getTryBlocks();
+    @Nonnull
+    List<? extends TryBlock<? extends ExceptionHandler>> getTryBlocks();
 
     /**
      * Get a list of debug items for this method.
      *
-     * This generally matches the semantics of the debug_info_item in the dex specification, although in an easier to
-     * digest form.
+     * This generally matches the semantics of the debug_info_item in the dex specification,
+     * although in an easier to digest form.
      *
      * The addresses of the DebugItems in the returned list will be in non-descending order.
      *
      * @return A list of DebugInfo items
      */
-    @Nonnull Iterable<? extends DebugItem> getDebugItems();
+    @Nonnull
+    Iterable<? extends DebugItem> getDebugItems();
 }

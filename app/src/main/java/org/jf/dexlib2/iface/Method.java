@@ -33,16 +33,18 @@ package org.jf.dexlib2.iface;
 
 import org.jf.dexlib2.iface.reference.MethodReference;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * This class represents a specific method definition in a class.
  *
- * It also acts as a MethodReference to itself. Any equality/comparison is based on its identity as a MethodReference,
- * and shouldn't take into account any non-MethodReference specifics of this method.
+ * It also acts as a MethodReference to itself. Any equality/comparison is based on its identity as
+ * a MethodReference, and shouldn't take into account any non-MethodReference specifics of this
+ * method.
  */
 public interface Method extends MethodReference {
     /**
@@ -50,39 +52,48 @@ public interface Method extends MethodReference {
      *
      * @return The type of the class that defines this method
      */
-    @Override @Nonnull String getDefiningClass();
+    @Override
+    @Nonnull
+    String getDefiningClass();
 
     /**
      * Gets the name of this method.
      *
      * @return The name of this method
      */
-    @Override @Nonnull String getName();
+    @Override
+    @Nonnull
+    String getName();
 
     /**
      * Gets a list of the parameters of this method.
      *
-     * As per the MethodReference interface, the MethodParameter objects contained in the returned list also act
-     * as a simple reference to the type of the parameter. However, the MethodParameter object can also contain
-     * additional information about the parameter.
+     * As per the MethodReference interface, the MethodParameter objects contained in the returned
+     * list also act as a simple reference to the type of the parameter. However, the
+     * MethodParameter object can also contain additional information about the parameter.
      *
-     * Note: In some implementations, the returned list is likely to *not* provide efficient random access.
+     * Note: In some implementations, the returned list is likely to *not* provide efficient random
+     * access.
      *
      * @return A list of MethodParameter objects, representing the parameters of this method.
      */
-    @Nonnull List<? extends MethodParameter> getParameters();
+    @Nonnull
+    List<? extends MethodParameter> getParameters();
 
     /**
      * Gets the return type of this method.
      *
      * @return The return type of this method.
      */
-    @Override @Nonnull String getReturnType();
+    @Override
+    @Nonnull
+    String getReturnType();
 
     /**
      * Gets the access flags for this method.
      *
-     * This will be a combination of the AccessFlags.* flags that are marked as compatible for use with a method.
+     * This will be a combination of the AccessFlags.* flags that are marked as compatible for use
+     * with a method.
      *
      * @return The access flags for this method
      */
@@ -95,16 +106,18 @@ public interface Method extends MethodReference {
      *
      * @return A set of the annotations that are applied to this method
      */
-    @Nonnull Set<? extends Annotation> getAnnotations();
+    @Nonnull
+    Set<? extends Annotation> getAnnotations();
 
     /**
      * Gets a MethodImplementation object that defines the implementation of the method.
      *
-     * If this is an abstract method in an abstract class, or an interface method in an interface definition, then the
-     * method has no implementation, and this will return null.
+     * If this is an abstract method in an abstract class, or an interface method in an interface
+     * definition, then the method has no implementation, and this will return null.
      *
-     * @return A MethodImplementation object defining the implementation of this method, or null if the method has no
-     * implementation
+     * @return A MethodImplementation object defining the implementation of this method, or null if
+     * the method has no implementation
      */
-    @Nullable MethodImplementation getImplementation();
+    @Nullable
+    MethodImplementation getImplementation();
 }

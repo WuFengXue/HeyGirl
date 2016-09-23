@@ -1,10 +1,12 @@
 package org.jf.dexlib2.iface;
 
-import javax.annotation.Nonnull;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 /**
- * This represents a basic annotation, and serves as a common superclass for Annotation and AnnotationEncodedValue
+ * This represents a basic annotation, and serves as a common superclass for Annotation and
+ * AnnotationEncodedValue
  */
 public interface BasicAnnotation {
     /**
@@ -14,7 +16,8 @@ public interface BasicAnnotation {
      *
      * @return The type of this annotation
      */
-    @Nonnull String getType();
+    @Nonnull
+    String getType();
 
     /**
      * Gets a set of the name/value elements associated with this annotation.
@@ -23,5 +26,6 @@ public interface BasicAnnotation {
      *
      * @return A set of AnnotationElements
      */
-    @Nonnull Set<? extends AnnotationElement> getElements();
+    @Nonnull
+    Set<? extends AnnotationElement> getElements();
 }

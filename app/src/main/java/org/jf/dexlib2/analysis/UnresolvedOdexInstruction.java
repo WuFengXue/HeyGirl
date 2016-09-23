@@ -35,9 +35,9 @@ import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.Instruction;
 
 /**
- * This represents a "fixed" odexed instruction, where the object register is always null and so the correct type
- * can't be determined. Typically, these are replaced by an equivalent instruction that would have the same
- * effect (namely, an NPE)
+ * This represents a "fixed" odexed instruction, where the object register is always null and so the
+ * correct type can't be determined. Typically, these are replaced by an equivalent instruction that
+ * would have the same effect (namely, an NPE)
  */
 public class UnresolvedOdexInstruction implements Instruction {
     public final Instruction originalInstruction;
@@ -49,11 +49,13 @@ public class UnresolvedOdexInstruction implements Instruction {
         this.objectRegisterNum = objectRegisterNumber;
     }
 
-    @Override public Opcode getOpcode() {
+    @Override
+    public Opcode getOpcode() {
         return originalInstruction.getOpcode();
     }
 
-    @Override public int getCodeUnits() {
+    @Override
+    public int getCodeUnits() {
         return originalInstruction.getCodeUnits();
     }
 }

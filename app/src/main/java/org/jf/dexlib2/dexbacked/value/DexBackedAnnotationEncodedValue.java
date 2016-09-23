@@ -38,12 +38,15 @@ import org.jf.dexlib2.dexbacked.DexReader;
 import org.jf.dexlib2.dexbacked.util.VariableSizeSet;
 import org.jf.dexlib2.iface.value.AnnotationEncodedValue;
 
-import javax.annotation.Nonnull;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 public class DexBackedAnnotationEncodedValue extends BaseAnnotationEncodedValue implements AnnotationEncodedValue {
-    @Nonnull public final DexBackedDexFile dexFile;
-    @Nonnull public final String type;
+    @Nonnull
+    public final DexBackedDexFile dexFile;
+    @Nonnull
+    public final String type;
     private final int elementCount;
     private final int elementsOffset;
 
@@ -62,13 +65,17 @@ public class DexBackedAnnotationEncodedValue extends BaseAnnotationEncodedValue 
     }
 
     private static void skipElements(@Nonnull DexReader reader, int elementCount) {
-        for (int i=0; i<elementCount; i++) {
+        for (int i = 0; i < elementCount; i++) {
             reader.skipUleb128();
             DexBackedEncodedValue.skipFrom(reader);
         }
     }
 
-    @Nonnull @Override public String getType() { return type; }
+    @Nonnull
+    @Override
+    public String getType() {
+        return type;
+    }
 
     @Nonnull
     @Override

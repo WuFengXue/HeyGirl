@@ -29,7 +29,14 @@
 package org.jf.baksmali;
 
 import com.google.common.collect.Lists;
-import org.apache.commons.cli.*;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 import org.jf.dexlib2.DexFileFactory;
 import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
@@ -37,13 +44,14 @@ import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.util.ConsoleUtil;
 import org.jf.util.SmaliHelpFormatter;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+
+import javax.annotation.Nonnull;
 
 public class main {
 
@@ -108,7 +116,7 @@ public class main {
         String[] remainingArgs = commandLine.getArgs();
         Option[] clOptions = commandLine.getOptions();
 
-        for (int i=0; i<clOptions.length; i++) {
+        for (int i = 0; i < clOptions.length; i++) {
             Option option = clOptions[i];
             String opt = option.getOpt();
 
@@ -153,7 +161,7 @@ public class main {
                     if (values == null || values.length == 0) {
                         registerInfo = baksmaliOptions.ARGS | baksmaliOptions.DEST;
                     } else {
-                        for (String value: values) {
+                        for (String value : values) {
                             if (value.equalsIgnoreCase("ALL")) {
                                 registerInfo |= baksmaliOptions.ALL;
                             } else if (value.equalsIgnoreCase("ALLPRE")) {
@@ -263,7 +271,7 @@ public class main {
 
         if (!setBootClassPath && (options.deodex || options.registerInfo != 0)) {
             if (dexFile instanceof DexBackedOdexFile) {
-                options.bootClassPathEntries = ((DexBackedOdexFile)dexFile).getDependencies();
+                options.bootClassPathEntries = ((DexBackedOdexFile) dexFile).getDependencies();
             } else {
                 options.bootClassPathEntries = getDefaultBootClassPathForApi(options.apiLevel);
             }
@@ -271,7 +279,7 @@ public class main {
 
         if (options.customInlineDefinitions == null && dexFile instanceof DexBackedOdexFile) {
             options.inlineResolver =
-                    InlineMethodResolver.createInlineMethodResolver(((DexBackedOdexFile)dexFile).getOdexVersion());
+                    InlineMethodResolver.createInlineMethodResolver(((DexBackedOdexFile) dexFile).getOdexVersion());
         }
 
         boolean errorOccurred = false;
@@ -304,7 +312,7 @@ public class main {
         formatter.setWidth(consoleWidth);
 
         formatter.printHelp("java -jar baksmali.jar [options] <dex-file>",
-                "disassembles and/or dumps a dex file", basicOptions, printDebugOptions?debugOptions:null);
+                "disassembles and/or dumps a dex file", basicOptions, printDebugOptions ? debugOptions : null);
     }
 
     private static void usage() {
@@ -465,14 +473,14 @@ public class main {
         debugOptions.addOption(noDisassemblyOption);
         debugOptions.addOption(inlineTableOption);
 
-        for (Object option: basicOptions.getOptions()) {
-            options.addOption((Option)option);
+        for (Object option : basicOptions.getOptions()) {
+            options.addOption((Option) option);
         }
-        for (Object option: debugOptions.getOptions()) {
-            options.addOption((Option)option);
+        for (Object option : debugOptions.getOptions()) {
+            options.addOption((Option) option);
         }
     }
-    
+
     @Nonnull
     private static List<String> getDefaultBootClassPathForApi(int apiLevel) {
         if (apiLevel < 9) {

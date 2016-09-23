@@ -33,13 +33,16 @@ import org.jf.dexlib2.analysis.AnalyzedInstruction;
 import org.jf.dexlib2.analysis.RegisterType;
 import org.jf.util.IndentingWriter;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.BitSet;
 
+import javax.annotation.Nonnull;
+
 public class PostInstructionRegisterInfoMethodItem extends MethodItem {
-    @Nonnull private final RegisterFormatter registerFormatter;
-    @Nonnull private final AnalyzedInstruction analyzedInstruction;
+    @Nonnull
+    private final RegisterFormatter registerFormatter;
+    @Nonnull
+    private final AnalyzedInstruction analyzedInstruction;
 
     public PostInstructionRegisterInfoMethodItem(@Nonnull RegisterFormatter registerFormatter,
                                                  @Nonnull AnalyzedInstruction analyzedInstruction,
@@ -74,7 +77,7 @@ public class PostInstructionRegisterInfoMethodItem extends MethodItem {
     }
 
     private void addDestRegs(BitSet printPostRegister, int registerCount) {
-        for (int registerNum=0; registerNum<registerCount; registerNum++) {
+        for (int registerNum = 0; registerNum < registerCount; registerNum++) {
             if (!analyzedInstruction.getPreInstructionRegisterType(registerNum).equals(
                     analyzedInstruction.getPostInstructionRegisterType(registerNum))) {
                 printPostRegister.set(registerNum);

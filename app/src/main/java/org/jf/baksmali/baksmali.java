@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
+
 import org.jf.baksmali.Adaptors.ClassDefinition;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.CustomInlineMethodResolver;
@@ -44,14 +45,23 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import javax.xml.parsers.ParserConfigurationException;
 
 public class baksmali {
 
@@ -83,30 +93,32 @@ public class baksmali {
         if (options.resourceIdFileEntries != null) {
             class PublicHandler extends DefaultHandler {
                 String prefix = null;
+
                 public PublicHandler(String prefix) {
                     super();
                     this.prefix = prefix;
                 }
 
                 public void startElement(String uri, String localName,
-                        String qName, Attributes attr) throws SAXException {
+                                         String qName, Attributes attr) throws SAXException {
                     if (qName.equals("public")) {
                         String type = attr.getValue("type");
                         String name = attr.getValue("name").replace('.', '_');
                         Integer public_key = Integer.decode(attr.getValue("id"));
                         String public_val = new StringBuffer()
-                            .append(prefix)
-                            .append(".")
-                            .append(type)
-                            .append(".")
-                            .append(name)
-                            .toString();
+                                .append(prefix)
+                                .append(".")
+                                .append(type)
+                                .append(".")
+                                .append(name)
+                                .toString();
                         options.resourceIds.put(public_key, public_val);
                     }
                 }
-            };
+            }
+            ;
 
-            for (Entry<String,String> entry: options.resourceIdFileEntries.entrySet()) {
+            for (Entry<String, String> entry : options.resourceIdFileEntries.entrySet()) {
                 try {
                     SAXParser saxp = SAXParserFactory.newInstance().newSAXParser();
                     String prefix = entry.getValue();
@@ -144,9 +156,10 @@ public class baksmali {
         ExecutorService executor = Executors.newFixedThreadPool(options.jobs);
         List<Future<Boolean>> tasks = Lists.newArrayList();
 
-        for (final ClassDef classDef: classDefs) {
+        for (final ClassDef classDef : classDefs) {
             tasks.add(executor.submit(new Callable<Boolean>() {
-                @Override public Boolean call() throws Exception {
+                @Override
+                public Boolean call() throws Exception {
                     return disassembleClass(classDef, fileNameHandler, options);
                 }
             }));
@@ -154,8 +167,8 @@ public class baksmali {
 
         boolean errorOccurred = false;
         try {
-            for (Future<Boolean> task: tasks) {
-                while(true) {
+            for (Future<Boolean> task : tasks) {
+                while (true) {
                     try {
                         if (!task.get()) {
                             errorOccurred = true;
@@ -187,7 +200,7 @@ public class baksmali {
 
         //validate that the descriptor is formatted like we expect
         if (classDescriptor.charAt(0) != 'L' ||
-                classDescriptor.charAt(classDescriptor.length()-1) != ';') {
+                classDescriptor.charAt(classDescriptor.length() - 1) != ';') {
             System.err.println("Unrecognized class descriptor - " + classDescriptor + " - skipping class");
             return false;
         }
@@ -199,8 +212,7 @@ public class baksmali {
 
         //write the disassembly
         Writer writer = null;
-        try
-        {
+        try {
             File smaliParent = smaliFile.getParentFile();
             if (!smaliParent.exists()) {
                 if (!smaliParent.mkdirs()) {
@@ -212,7 +224,7 @@ public class baksmali {
                 }
             }
 
-            if (!smaliFile.exists()){
+            if (!smaliFile.exists()) {
                 if (!smaliFile.createNewFile()) {
                     System.err.println("Unable to create file " + smaliFile.toString() + " - skipping class");
                     return false;
@@ -223,16 +235,14 @@ public class baksmali {
                     new FileOutputStream(smaliFile), "UTF8"));
 
             writer = new IndentingWriter(bufWriter);
-            classDefinition.writeTo((IndentingWriter)writer);
+            classDefinition.writeTo((IndentingWriter) writer);
         } catch (Exception ex) {
             System.err.println("\n\nError occurred while disassembling class " + classDescriptor.replace('/', '.') + " - skipping class");
             ex.printStackTrace();
             // noinspection ResultOfMethodCallIgnored
             smaliFile.delete();
             return false;
-        }
-        finally
-        {
+        } finally {
             if (writer != null) {
                 try {
                     writer.close();

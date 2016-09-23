@@ -31,9 +31,10 @@
 
 package org.jf.dexlib2.iface.reference;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 /**
  * This class represents a reference to a method.
@@ -44,28 +45,32 @@ public interface MethodReference extends Reference, Comparable<MethodReference> 
      *
      * @return The type of the class that defines the referenced method
      */
-    @Nonnull String getDefiningClass();
+    @Nonnull
+    String getDefiningClass();
 
     /**
      * Gets the name of the referenced method.
      *
      * @return The name of the referenced method
      */
-    @Nonnull String getName();
+    @Nonnull
+    String getName();
 
     /**
      * Gets a list of the types of the parameters of this method.
      *
      * @return A list of the parameter types of this method, as strings.
      */
-    @Nonnull List<? extends CharSequence> getParameterTypes();
+    @Nonnull
+    List<? extends CharSequence> getParameterTypes();
 
     /**
      * Gets the return type of the referenced method.
      *
      * @return The return type of the referenced method.
      */
-    @Nonnull String getReturnType();
+    @Nonnull
+    String getReturnType();
 
     /**
      * Returns a hashcode for this MethodReference.
@@ -82,31 +87,36 @@ public interface MethodReference extends Reference, Comparable<MethodReference> 
      *
      * @return The hash code value for this MethodReference
      */
-    @Override int hashCode();
+    @Override
+    int hashCode();
 
     /**
      * Compares this MethodReference to another MethodReference for equality.
      *
-     * This MethodReference is equal to another MethodReference if all of it's "fields" are equal. That is, if
-     * the return values of getDefiningClass(), getName(), getReturnType() and getParameterTypes() are all equal.
+     * This MethodReference is equal to another MethodReference if all of it's "fields" are equal.
+     * That is, if the return values of getDefiningClass(), getName(), getReturnType() and
+     * getParameterTypes() are all equal.
      *
-     * Equality for getParameters() should be tested by comparing the string representation of each element. I.e.
-     * CharSequenceUtils.listEquals(this.getParameterTypes(), other.getParameterTypes())
+     * Equality for getParameters() should be tested by comparing the string representation of each
+     * element. I.e. CharSequenceUtils.listEquals(this.getParameterTypes(),
+     * other.getParameterTypes())
      *
      * @param o The object to be compared for equality with this MethodReference
      * @return true if the specified object is equal to this MethodReference
      */
-    @Override boolean equals(@Nullable Object o);
+    @Override
+    boolean equals(@Nullable Object o);
 
     /**
      * Compare this MethodReference to another MethodReference.
      *
-     * The comparison is based on the comparison of the return values of getDefiningClass(), getName(),
-     * getReturnType() and getParameters(), in that order. getParameters() should be compared using the semantics
-     * of org.jf.util.CollectionUtils.compareAsList()
+     * The comparison is based on the comparison of the return values of getDefiningClass(),
+     * getName(), getReturnType() and getParameters(), in that order. getParameters() should be
+     * compared using the semantics of org.jf.util.CollectionUtils.compareAsList()
      *
      * @param o The MethodReference to compare with this MethodReference
      * @return An integer representing the result of the comparison
      */
-    @Override int compareTo(@Nonnull MethodReference o);
+    @Override
+    int compareTo(@Nonnull MethodReference o);
 }

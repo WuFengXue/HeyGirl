@@ -32,6 +32,7 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableList;
+
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.TryBlock;
@@ -41,15 +42,19 @@ import org.jf.dexlib2.immutable.debug.ImmutableDebugItem;
 import org.jf.dexlib2.immutable.instruction.ImmutableInstruction;
 import org.jf.util.ImmutableUtils;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 public class ImmutableMethodImplementation implements MethodImplementation {
     protected final int registerCount;
-    @Nonnull protected final ImmutableList<? extends ImmutableInstruction> instructions;
-    @Nonnull protected final ImmutableList<? extends ImmutableTryBlock> tryBlocks;
-    @Nonnull protected final ImmutableList<? extends ImmutableDebugItem> debugItems;
+    @Nonnull
+    protected final ImmutableList<? extends ImmutableInstruction> instructions;
+    @Nonnull
+    protected final ImmutableList<? extends ImmutableTryBlock> tryBlocks;
+    @Nonnull
+    protected final ImmutableList<? extends ImmutableDebugItem> debugItems;
 
     public ImmutableMethodImplementation(int registerCount,
                                          @Nullable Iterable<? extends Instruction> instructions,
@@ -77,7 +82,7 @@ public class ImmutableMethodImplementation implements MethodImplementation {
             return null;
         }
         if (methodImplementation instanceof ImmutableMethodImplementation) {
-            return (ImmutableMethodImplementation)methodImplementation;
+            return (ImmutableMethodImplementation) methodImplementation;
         }
         return new ImmutableMethodImplementation(
                 methodImplementation.getRegisterCount(),
@@ -86,8 +91,26 @@ public class ImmutableMethodImplementation implements MethodImplementation {
                 methodImplementation.getDebugItems());
     }
 
-    @Override public int getRegisterCount() { return registerCount; }
-    @Nonnull @Override public ImmutableList<? extends ImmutableInstruction> getInstructions() { return instructions; }
-    @Nonnull @Override public ImmutableList<? extends ImmutableTryBlock> getTryBlocks() { return tryBlocks; }
-    @Nonnull @Override public ImmutableList<? extends ImmutableDebugItem> getDebugItems() { return debugItems; }
+    @Override
+    public int getRegisterCount() {
+        return registerCount;
+    }
+
+    @Nonnull
+    @Override
+    public ImmutableList<? extends ImmutableInstruction> getInstructions() {
+        return instructions;
+    }
+
+    @Nonnull
+    @Override
+    public ImmutableList<? extends ImmutableTryBlock> getTryBlocks() {
+        return tryBlocks;
+    }
+
+    @Nonnull
+    @Override
+    public ImmutableList<? extends ImmutableDebugItem> getDebugItems() {
+        return debugItems;
+    }
 }

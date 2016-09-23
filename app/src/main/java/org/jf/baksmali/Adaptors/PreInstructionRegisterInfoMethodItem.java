@@ -32,18 +32,26 @@ import org.jf.baksmali.baksmaliOptions;
 import org.jf.dexlib2.analysis.AnalyzedInstruction;
 import org.jf.dexlib2.analysis.MethodAnalyzer;
 import org.jf.dexlib2.analysis.RegisterType;
-import org.jf.dexlib2.iface.instruction.*;
+import org.jf.dexlib2.iface.instruction.FiveRegisterInstruction;
+import org.jf.dexlib2.iface.instruction.OneRegisterInstruction;
+import org.jf.dexlib2.iface.instruction.RegisterRangeInstruction;
+import org.jf.dexlib2.iface.instruction.ThreeRegisterInstruction;
+import org.jf.dexlib2.iface.instruction.TwoRegisterInstruction;
 import org.jf.util.IndentingWriter;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.BitSet;
 
+import javax.annotation.Nonnull;
+
 public class PreInstructionRegisterInfoMethodItem extends MethodItem {
     private final int registerInfo;
-    @Nonnull private final MethodAnalyzer methodAnalyzer;
-    @Nonnull private final RegisterFormatter registerFormatter;
-    @Nonnull private final AnalyzedInstruction analyzedInstruction;
+    @Nonnull
+    private final MethodAnalyzer methodAnalyzer;
+    @Nonnull
+    private final RegisterFormatter registerFormatter;
+    @Nonnull
+    private final AnalyzedInstruction analyzedInstruction;
 
     public PreInstructionRegisterInfoMethodItem(int registerInfo,
                                                 @Nonnull MethodAnalyzer methodAnalyzer,
@@ -106,12 +114,12 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
 
     private void addArgsRegs(BitSet registers) {
         if (analyzedInstruction.getInstruction() instanceof RegisterRangeInstruction) {
-            RegisterRangeInstruction instruction = (RegisterRangeInstruction)analyzedInstruction.getInstruction();
+            RegisterRangeInstruction instruction = (RegisterRangeInstruction) analyzedInstruction.getInstruction();
 
             registers.set(instruction.getStartRegister(),
                     instruction.getStartRegister() + instruction.getRegisterCount());
         } else if (analyzedInstruction.getInstruction() instanceof FiveRegisterInstruction) {
-            FiveRegisterInstruction instruction = (FiveRegisterInstruction)analyzedInstruction.getInstruction();
+            FiveRegisterInstruction instruction = (FiveRegisterInstruction) analyzedInstruction.getInstruction();
             int regCount = instruction.getRegisterCount();
             switch (regCount) {
                 case 5:
@@ -130,16 +138,16 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
                     registers.set(instruction.getRegisterC());
             }
         } else if (analyzedInstruction.getInstruction() instanceof ThreeRegisterInstruction) {
-            ThreeRegisterInstruction instruction = (ThreeRegisterInstruction)analyzedInstruction.getInstruction();
+            ThreeRegisterInstruction instruction = (ThreeRegisterInstruction) analyzedInstruction.getInstruction();
             registers.set(instruction.getRegisterA());
             registers.set(instruction.getRegisterB());
             registers.set(instruction.getRegisterC());
         } else if (analyzedInstruction.getInstruction() instanceof TwoRegisterInstruction) {
-            TwoRegisterInstruction instruction = (TwoRegisterInstruction)analyzedInstruction.getInstruction();
+            TwoRegisterInstruction instruction = (TwoRegisterInstruction) analyzedInstruction.getInstruction();
             registers.set(instruction.getRegisterA());
             registers.set(instruction.getRegisterB());
         } else if (analyzedInstruction.getInstruction() instanceof OneRegisterInstruction) {
-            OneRegisterInstruction instruction = (OneRegisterInstruction)analyzedInstruction.getInstruction();
+            OneRegisterInstruction instruction = (OneRegisterInstruction) analyzedInstruction.getInstruction();
             registers.set(instruction.getRegisterA());
         }
     }
@@ -152,10 +160,10 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
             return;
         }
 
-        for (int registerNum=0; registerNum<registerCount; registerNum++) {
+        for (int registerNum = 0; registerNum < registerCount; registerNum++) {
             RegisterType mergedRegisterType = analyzedInstruction.getPreInstructionRegisterType(registerNum);
 
-            for (AnalyzedInstruction predecessor: analyzedInstruction.getPredecessors()) {
+            for (AnalyzedInstruction predecessor : analyzedInstruction.getPredecessors()) {
                 RegisterType predecessorRegisterType = predecessor.getPostInstructionRegisterType(registerNum);
                 if (predecessorRegisterType.category != RegisterType.UNKNOWN &&
                         !predecessorRegisterType.equals(mergedRegisterType)) {
@@ -167,7 +175,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
 
     private void addParamRegs(BitSet registers, int registerCount) {
         int parameterRegisterCount = methodAnalyzer.getParamRegisterCount();
-        registers.set(registerCount-parameterRegisterCount, registerCount);
+        registers.set(registerCount - parameterRegisterCount, registerCount);
     }
 
     private void writeFullMerge(IndentingWriter writer, int registerNum) throws IOException {
@@ -178,7 +186,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
 
         boolean first = true;
 
-        for (AnalyzedInstruction predecessor: analyzedInstruction.getPredecessors()) {
+        for (AnalyzedInstruction predecessor : analyzedInstruction.getPredecessors()) {
             RegisterType predecessorRegisterType = predecessor.getPostInstructionRegisterType(registerNum);
 
             if (!first) {
@@ -211,7 +219,7 @@ public class PreInstructionRegisterInfoMethodItem extends MethodItem {
 
         writer.write('#');
         for (; registerNum >= 0; registerNum = registers.nextSetBit(registerNum + 1)) {
-            boolean fullMerge = fullMergeRegisters!=null && fullMergeRegisters.get(registerNum);
+            boolean fullMerge = fullMergeRegisters != null && fullMergeRegisters.get(registerNum);
             if (fullMerge) {
                 if (!firstRegister) {
                     writer.write('\n');

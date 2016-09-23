@@ -5,7 +5,6 @@ package ds.tree;
  * A simple standard implementation for a {@link visitor}.
  *
  * @author Dennis Heidsiek
- * @param <T,R>
  */
 public abstract class VisitorImpl<T, R> implements Visitor<T, R> {
 

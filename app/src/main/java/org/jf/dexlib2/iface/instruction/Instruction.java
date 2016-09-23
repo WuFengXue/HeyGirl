@@ -36,9 +36,10 @@ import org.jf.dexlib2.Opcode;
 /**
  * This class represents a generic instruction.
  *
- * There are two categories of sub-interfaces of this interface. The dexlib2.iface.instruction.* interfaces are set of
- * generic categories of instructions, while the dexlib2.iface.instruction.formats.* interfaces each represent a
- * specific instruction format, and are typically built up as a composite of generic instruction interfaces.
+ * There are two categories of sub-interfaces of this interface. The dexlib2.iface.instruction.*
+ * interfaces are set of generic categories of instructions, while the
+ * dexlib2.iface.instruction.formats.* interfaces each represent a specific instruction format, and
+ * are typically built up as a composite of generic instruction interfaces.
  */
 public interface Instruction {
     /**
@@ -51,8 +52,8 @@ public interface Instruction {
     /**
      * Gets the size of this instruction.
      *
-     * @return The size of this instruction, as a count of the number of 16-bit code units that make up this
-     * instruction.
+     * @return The size of this instruction, as a count of the number of 16-bit code units that make
+     * up this instruction.
      */
     int getCodeUnits();
 }

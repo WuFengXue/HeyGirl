@@ -33,15 +33,36 @@ package org.jf.dexlib2.writer.pool;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
+
 import org.jf.dexlib2.DebugItemType;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.builder.MutableMethodImplementation;
-import org.jf.dexlib2.iface.*;
-import org.jf.dexlib2.iface.debug.*;
+import org.jf.dexlib2.iface.Annotation;
+import org.jf.dexlib2.iface.ClassDef;
+import org.jf.dexlib2.iface.ExceptionHandler;
+import org.jf.dexlib2.iface.Field;
+import org.jf.dexlib2.iface.Method;
+import org.jf.dexlib2.iface.MethodImplementation;
+import org.jf.dexlib2.iface.MethodParameter;
+import org.jf.dexlib2.iface.TryBlock;
+import org.jf.dexlib2.iface.debug.DebugItem;
+import org.jf.dexlib2.iface.debug.EndLocal;
+import org.jf.dexlib2.iface.debug.LineNumber;
+import org.jf.dexlib2.iface.debug.RestartLocal;
+import org.jf.dexlib2.iface.debug.SetSourceFile;
+import org.jf.dexlib2.iface.debug.StartLocal;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
-import org.jf.dexlib2.iface.reference.*;
+import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.Reference;
+import org.jf.dexlib2.iface.reference.StringReference;
+import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.immutable.value.ImmutableEncodedValueFactory;
 import org.jf.dexlib2.util.EncodedValueUtils;
@@ -52,23 +73,69 @@ import org.jf.util.AbstractForwardSequentialList;
 import org.jf.util.CollectionUtils;
 import org.jf.util.ExceptionWithContext;
 
+import java.io.IOException;
+import java.util.AbstractCollection;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.SortedSet;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
 
 public class ClassPool implements ClassSection<CharSequence, CharSequence,
         TypeListPool.Key<? extends Collection<? extends CharSequence>>, PoolClassDef, Field, PoolMethod,
         Set<? extends Annotation>, EncodedValue> {
-    @Nonnull private HashMap<String, PoolClassDef> internedItems = Maps.newHashMap();
-
-    @Nonnull private final StringPool stringPool;
-    @Nonnull private final TypePool typePool;
-    @Nonnull private final FieldPool fieldPool;
-    @Nonnull private final MethodPool methodPool;
-    @Nonnull private final AnnotationSetPool annotationSetPool;
-    @Nonnull private final TypeListPool typeListPool;
+    private static final Predicate<Field> HAS_INITIALIZER = new Predicate<Field>() {
+        @Override
+        public boolean apply(Field input) {
+            EncodedValue encodedValue = input.getInitialValue();
+            return encodedValue != null && !EncodedValueUtils.isDefaultValue(encodedValue);
+        }
+    };
+    private static final Function<Field, EncodedValue> GET_INITIAL_VALUE = new Function<Field, EncodedValue>() {
+        @Override
+        public EncodedValue apply(Field input) {
+            EncodedValue initialValue = input.getInitialValue();
+            if (initialValue == null) {
+                return ImmutableEncodedValueFactory.defaultValueForType(input.getType());
+            }
+            return initialValue;
+        }
+    };
+    private static final Predicate<MethodParameter> HAS_PARAMETER_ANNOTATIONS = new Predicate<MethodParameter>() {
+        @Override
+        public boolean apply(MethodParameter input) {
+            return input.getAnnotations().size() > 0;
+        }
+    };
+    private static final Function<MethodParameter, Set<? extends Annotation>> PARAMETER_ANNOTATIONS =
+            new Function<MethodParameter, Set<? extends Annotation>>() {
+                @Override
+                public Set<? extends Annotation> apply(MethodParameter input) {
+                    return input.getAnnotations();
+                }
+            };
+    @Nonnull
+    private final StringPool stringPool;
+    @Nonnull
+    private final TypePool typePool;
+    @Nonnull
+    private final FieldPool fieldPool;
+    @Nonnull
+    private final MethodPool methodPool;
+    @Nonnull
+    private final AnnotationSetPool annotationSetPool;
+    @Nonnull
+    private final TypeListPool typeListPool;
+    @Nonnull
+    private HashMap<String, PoolClassDef> internedItems = Maps.newHashMap();
+    private ImmutableList<PoolClassDef> sortedClasses = null;
 
     public ClassPool(@Nonnull StringPool stringPool,
                      @Nonnull TypePool typePool,
@@ -98,7 +165,7 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         stringPool.internNullable(poolClassDef.getSourceFile());
 
         HashSet<String> fields = new HashSet<String>();
-        for (Field field: poolClassDef.getFields()) {
+        for (Field field : poolClassDef.getFields()) {
             String fieldDescriptor = ReferenceUtil.getShortFieldDescriptor(field);
             if (!fields.add(fieldDescriptor)) {
                 throw new ExceptionWithContext("Multiple definitions for field %s->%s",
@@ -115,7 +182,7 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         }
 
         HashSet<String> methods = new HashSet<String>();
-        for (PoolMethod method: poolClassDef.getMethods()) {
+        for (PoolMethod method : poolClassDef.getMethods()) {
             String methodDescriptor = ReferenceUtil.getShortMethodDescriptor(method);
             if (!methods.add(methodDescriptor)) {
                 throw new ExceptionWithContext("Multiple definitions for method %s->%s",
@@ -126,7 +193,7 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
             internDebug(method);
             annotationSetPool.intern(method.getAnnotations());
 
-            for (MethodParameter parameter: method.getParameters()) {
+            for (MethodParameter parameter : method.getParameters()) {
                 annotationSetPool.intern(parameter.getAnnotations());
             }
         }
@@ -140,22 +207,22 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
 
         MethodImplementation methodImpl = method.getImplementation();
         if (methodImpl != null) {
-            for (Instruction instruction: methodImpl.getInstructions()) {
+            for (Instruction instruction : methodImpl.getInstructions()) {
                 hasInstruction = true;
                 if (instruction instanceof ReferenceInstruction) {
-                    Reference reference = ((ReferenceInstruction)instruction).getReference();
+                    Reference reference = ((ReferenceInstruction) instruction).getReference();
                     switch (instruction.getOpcode().referenceType) {
                         case ReferenceType.STRING:
-                            stringPool.intern((StringReference)reference);
+                            stringPool.intern((StringReference) reference);
                             break;
                         case ReferenceType.TYPE:
-                            typePool.intern((TypeReference)reference);
+                            typePool.intern((TypeReference) reference);
                             break;
                         case ReferenceType.FIELD:
                             fieldPool.intern((FieldReference) reference);
                             break;
                         case ReferenceType.METHOD:
-                            methodPool.intern((MethodReference)reference);
+                            methodPool.intern((MethodReference) reference);
                             break;
                         default:
                             throw new ExceptionWithContext("Unrecognized reference type: %d",
@@ -170,8 +237,8 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
                         ReferenceUtil.getMethodDescriptor(method));
             }
 
-            for (TryBlock<? extends ExceptionHandler> tryBlock: methodImpl.getTryBlocks()) {
-                for (ExceptionHandler handler: tryBlock.getExceptionHandlers()) {
+            for (TryBlock<? extends ExceptionHandler> tryBlock : methodImpl.getTryBlocks()) {
+                for (ExceptionHandler handler : tryBlock.getExceptionHandlers()) {
                     typePool.internNullable(handler.getExceptionType());
                 }
             }
@@ -179,7 +246,7 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
     }
 
     private void internDebug(@Nonnull Method method) {
-        for (MethodParameter param: method.getParameters()) {
+        for (MethodParameter param : method.getParameters()) {
             String paramName = param.getName();
             if (paramName != null) {
                 stringPool.intern(paramName);
@@ -188,10 +255,10 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
 
         MethodImplementation methodImpl = method.getImplementation();
         if (methodImpl != null) {
-            for (DebugItem debugItem: methodImpl.getDebugItems()) {
+            for (DebugItem debugItem : methodImpl.getDebugItems()) {
                 switch (debugItem.getDebugItemType()) {
                     case DebugItemType.START_LOCAL:
-                        StartLocal startLocal = (StartLocal)debugItem;
+                        StartLocal startLocal = (StartLocal) debugItem;
                         stringPool.internNullable(startLocal.getName());
                         typePool.internNullable(startLocal.getType());
                         stringPool.internNullable(startLocal.getSignature());
@@ -204,15 +271,17 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         }
     }
 
-    private ImmutableList<PoolClassDef> sortedClasses = null;
-    @Nonnull @Override public Collection<? extends PoolClassDef> getSortedClasses() {
+    @Nonnull
+    @Override
+    public Collection<? extends PoolClassDef> getSortedClasses() {
         if (sortedClasses == null) {
             sortedClasses = Ordering.natural().immutableSortedCopy(internedItems.values());
         }
         return sortedClasses;
     }
 
-    @Nullable @Override
+    @Nullable
+    @Override
     public Map.Entry<? extends PoolClassDef, Integer> getClassEntryByType(@Nullable CharSequence name) {
         if (name == null) {
             return null;
@@ -224,113 +293,127 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         }
 
         return new Map.Entry<PoolClassDef, Integer>() {
-            @Override public PoolClassDef getKey() {
+            @Override
+            public PoolClassDef getKey() {
                 return classDef;
             }
 
-            @Override public Integer getValue() {
+            @Override
+            public Integer getValue() {
                 return classDef.classDefIndex;
             }
 
-            @Override public Integer setValue(Integer value) {
+            @Override
+            public Integer setValue(Integer value) {
                 return classDef.classDefIndex = value;
             }
         };
     }
 
-    @Nonnull @Override public CharSequence getType(@Nonnull PoolClassDef classDef) {
+    @Nonnull
+    @Override
+    public CharSequence getType(@Nonnull PoolClassDef classDef) {
         return classDef.getType();
     }
 
-    @Override public int getAccessFlags(@Nonnull PoolClassDef classDef) {
+    @Override
+    public int getAccessFlags(@Nonnull PoolClassDef classDef) {
         return classDef.getAccessFlags();
     }
 
-    @Nullable @Override public CharSequence getSuperclass(@Nonnull PoolClassDef classDef) {
+    @Nullable
+    @Override
+    public CharSequence getSuperclass(@Nonnull PoolClassDef classDef) {
         return classDef.getSuperclass();
     }
 
-    @Nullable @Override public TypeListPool.Key<SortedSet<String>> getSortedInterfaces(@Nonnull PoolClassDef classDef) {
+    @Nullable
+    @Override
+    public TypeListPool.Key<SortedSet<String>> getSortedInterfaces(@Nonnull PoolClassDef classDef) {
         return classDef.interfaces;
     }
 
-    @Nullable @Override public CharSequence getSourceFile(@Nonnull PoolClassDef classDef) {
+    @Nullable
+    @Override
+    public CharSequence getSourceFile(@Nonnull PoolClassDef classDef) {
         return classDef.getSourceFile();
     }
 
-    private static final Predicate<Field> HAS_INITIALIZER = new Predicate<Field>() {
-        @Override
-        public boolean apply(Field input) {
-            EncodedValue encodedValue = input.getInitialValue();
-            return encodedValue != null && !EncodedValueUtils.isDefaultValue(encodedValue);
-        }
-    };
-
-    private static final Function<Field, EncodedValue> GET_INITIAL_VALUE = new Function<Field, EncodedValue>() {
-        @Override
-        public EncodedValue apply(Field input) {
-            EncodedValue initialValue = input.getInitialValue();
-            if (initialValue == null) {
-                return ImmutableEncodedValueFactory.defaultValueForType(input.getType());
-            }
-            return initialValue;
-        }
-    };
-
-    @Nullable @Override public Collection<? extends EncodedValue> getStaticInitializers(
+    @Nullable
+    @Override
+    public Collection<? extends EncodedValue> getStaticInitializers(
             @Nonnull PoolClassDef classDef) {
         final SortedSet<Field> sortedStaticFields = classDef.getStaticFields();
 
         final int lastIndex = CollectionUtils.lastIndexOf(sortedStaticFields, HAS_INITIALIZER);
         if (lastIndex > -1) {
             return new AbstractCollection<EncodedValue>() {
-                @Nonnull @Override public Iterator<EncodedValue> iterator() {
+                @Nonnull
+                @Override
+                public Iterator<EncodedValue> iterator() {
                     return FluentIterable.from(sortedStaticFields)
-                            .limit(lastIndex+1)
+                            .limit(lastIndex + 1)
                             .transform(GET_INITIAL_VALUE).iterator();
                 }
 
-                @Override public int size() {
-                    return lastIndex+1;
+                @Override
+                public int size() {
+                    return lastIndex + 1;
                 }
             };
         }
         return null;
     }
 
-    @Nonnull @Override public Collection<? extends Field> getSortedStaticFields(@Nonnull PoolClassDef classDef) {
+    @Nonnull
+    @Override
+    public Collection<? extends Field> getSortedStaticFields(@Nonnull PoolClassDef classDef) {
         return classDef.getStaticFields();
     }
 
-    @Nonnull @Override public Collection<? extends Field> getSortedInstanceFields(@Nonnull PoolClassDef classDef) {
+    @Nonnull
+    @Override
+    public Collection<? extends Field> getSortedInstanceFields(@Nonnull PoolClassDef classDef) {
         return classDef.getInstanceFields();
     }
 
-    @Nonnull @Override public Collection<? extends Field> getSortedFields(@Nonnull PoolClassDef classDef) {
+    @Nonnull
+    @Override
+    public Collection<? extends Field> getSortedFields(@Nonnull PoolClassDef classDef) {
         return classDef.getFields();
     }
 
-    @Nonnull @Override public Collection<PoolMethod> getSortedDirectMethods(@Nonnull PoolClassDef classDef) {
+    @Nonnull
+    @Override
+    public Collection<PoolMethod> getSortedDirectMethods(@Nonnull PoolClassDef classDef) {
         return classDef.getDirectMethods();
     }
 
-    @Nonnull @Override public Collection<PoolMethod> getSortedVirtualMethods(@Nonnull PoolClassDef classDef) {
+    @Nonnull
+    @Override
+    public Collection<PoolMethod> getSortedVirtualMethods(@Nonnull PoolClassDef classDef) {
         return classDef.getVirtualMethods();
     }
 
-    @Nonnull @Override public Collection<? extends PoolMethod> getSortedMethods(@Nonnull PoolClassDef classDef) {
+    @Nonnull
+    @Override
+    public Collection<? extends PoolMethod> getSortedMethods(@Nonnull PoolClassDef classDef) {
         return classDef.getMethods();
     }
 
-    @Override public int getFieldAccessFlags(@Nonnull Field field) {
+    @Override
+    public int getFieldAccessFlags(@Nonnull Field field) {
         return field.getAccessFlags();
     }
 
-    @Override public int getMethodAccessFlags(@Nonnull PoolMethod method) {
+    @Override
+    public int getMethodAccessFlags(@Nonnull PoolMethod method) {
         return method.getAccessFlags();
     }
 
-    @Nullable @Override public Set<? extends Annotation> getClassAnnotations(@Nonnull PoolClassDef classDef) {
+    @Nullable
+    @Override
+    public Set<? extends Annotation> getClassAnnotations(@Nonnull PoolClassDef classDef) {
         Set<? extends Annotation> annotations = classDef.getAnnotations();
         if (annotations.size() == 0) {
             return null;
@@ -338,7 +421,9 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         return annotations;
     }
 
-    @Nullable @Override public Set<? extends Annotation> getFieldAnnotations(@Nonnull Field field) {
+    @Nullable
+    @Override
+    public Set<? extends Annotation> getFieldAnnotations(@Nonnull Field field) {
         Set<? extends Annotation> annotations = field.getAnnotations();
         if (annotations.size() == 0) {
             return null;
@@ -346,7 +431,9 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         return annotations;
     }
 
-    @Nullable @Override public Set<? extends Annotation> getMethodAnnotations(@Nonnull PoolMethod method) {
+    @Nullable
+    @Override
+    public Set<? extends Annotation> getMethodAnnotations(@Nonnull PoolMethod method) {
         Set<? extends Annotation> annotations = method.getAnnotations();
         if (annotations.size() == 0) {
             return null;
@@ -354,34 +441,24 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         return annotations;
     }
 
-    private static final Predicate<MethodParameter> HAS_PARAMETER_ANNOTATIONS = new Predicate<MethodParameter>() {
-        @Override
-        public boolean apply(MethodParameter input) {
-            return input.getAnnotations().size() > 0;
-        }
-    };
-
-    private static final Function<MethodParameter, Set<? extends Annotation>> PARAMETER_ANNOTATIONS =
-            new Function<MethodParameter, Set<? extends Annotation>>() {
-                @Override
-                public Set<? extends Annotation> apply(MethodParameter input) {
-                    return input.getAnnotations();
-                }
-            };
-
-    @Nullable @Override public List<? extends Set<? extends Annotation>> getParameterAnnotations(
+    @Nullable
+    @Override
+    public List<? extends Set<? extends Annotation>> getParameterAnnotations(
             @Nonnull final PoolMethod method) {
         final List<? extends MethodParameter> parameters = method.getParameters();
         boolean hasParameterAnnotations = Iterables.any(parameters, HAS_PARAMETER_ANNOTATIONS);
 
         if (hasParameterAnnotations) {
             return new AbstractForwardSequentialList<Set<? extends Annotation>>() {
-                @Nonnull @Override public Iterator<Set<? extends Annotation>> iterator() {
+                @Nonnull
+                @Override
+                public Iterator<Set<? extends Annotation>> iterator() {
                     return FluentIterable.from(parameters)
                             .transform(PARAMETER_ANNOTATIONS).iterator();
                 }
 
-                @Override public int size() {
+                @Override
+                public int size() {
                     return parameters.size();
                 }
             };
@@ -389,7 +466,9 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         return null;
     }
 
-    @Nullable @Override public Iterable<? extends DebugItem> getDebugItems(@Nonnull PoolMethod method) {
+    @Nullable
+    @Override
+    public Iterable<? extends DebugItem> getDebugItems(@Nonnull PoolMethod method) {
         MethodImplementation impl = method.getImplementation();
         if (impl != null) {
             return impl.getDebugItems();
@@ -397,15 +476,20 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         return null;
     }
 
-    @Nullable @Override public Iterable<CharSequence> getParameterNames(@Nonnull PoolMethod method) {
+    @Nullable
+    @Override
+    public Iterable<CharSequence> getParameterNames(@Nonnull PoolMethod method) {
         return Iterables.transform(method.getParameters(), new Function<MethodParameter, CharSequence>() {
-            @Nullable @Override public CharSequence apply(MethodParameter input) {
+            @Nullable
+            @Override
+            public CharSequence apply(MethodParameter input) {
                 return input.getName();
             }
         });
     }
 
-    @Override public int getRegisterCount(@Nonnull PoolMethod method) {
+    @Override
+    public int getRegisterCount(@Nonnull PoolMethod method) {
         MethodImplementation impl = method.getImplementation();
         if (impl != null) {
             return impl.getRegisterCount();
@@ -413,7 +497,9 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         return 0;
     }
 
-    @Nullable @Override public Iterable<? extends Instruction> getInstructions(@Nonnull PoolMethod method) {
+    @Nullable
+    @Override
+    public Iterable<? extends Instruction> getInstructions(@Nonnull PoolMethod method) {
         MethodImplementation impl = method.getImplementation();
         if (impl != null) {
             return impl.getInstructions();
@@ -421,7 +507,9 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         return null;
     }
 
-    @Nonnull @Override public List<? extends TryBlock<? extends ExceptionHandler>> getTryBlocks(
+    @Nonnull
+    @Override
+    public List<? extends TryBlock<? extends ExceptionHandler>> getTryBlocks(
             @Nonnull PoolMethod method) {
         MethodImplementation impl = method.getImplementation();
         if (impl != null) {
@@ -430,52 +518,65 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         return ImmutableList.of();
     }
 
-    @Nullable @Override public CharSequence getExceptionType(@Nonnull ExceptionHandler handler) {
+    @Nullable
+    @Override
+    public CharSequence getExceptionType(@Nonnull ExceptionHandler handler) {
         return handler.getExceptionType();
     }
 
-    @Nonnull @Override
+    @Nonnull
+    @Override
     public MutableMethodImplementation makeMutableMethodImplementation(@Nonnull PoolMethod poolMethod) {
         return new MutableMethodImplementation(poolMethod.getImplementation());
     }
 
-    @Override public void setEncodedArrayOffset(@Nonnull PoolClassDef classDef, int offset) {
+    @Override
+    public void setEncodedArrayOffset(@Nonnull PoolClassDef classDef, int offset) {
         classDef.encodedArrayOffset = offset;
     }
 
-    @Override public int getEncodedArrayOffset(@Nonnull PoolClassDef classDef) {
+    @Override
+    public int getEncodedArrayOffset(@Nonnull PoolClassDef classDef) {
         return classDef.encodedArrayOffset;
     }
 
-    @Override public void setAnnotationDirectoryOffset(@Nonnull PoolClassDef classDef, int offset) {
+    @Override
+    public void setAnnotationDirectoryOffset(@Nonnull PoolClassDef classDef, int offset) {
         classDef.annotationDirectoryOffset = offset;
     }
 
-    @Override public int getAnnotationDirectoryOffset(@Nonnull PoolClassDef classDef) {
+    @Override
+    public int getAnnotationDirectoryOffset(@Nonnull PoolClassDef classDef) {
         return classDef.annotationDirectoryOffset;
     }
 
-    @Override public void setAnnotationSetRefListOffset(@Nonnull PoolMethod method, int offset) {
+    @Override
+    public void setAnnotationSetRefListOffset(@Nonnull PoolMethod method, int offset) {
         method.annotationSetRefListOffset = offset;
 
     }
-    @Override public int getAnnotationSetRefListOffset(@Nonnull PoolMethod method) {
+
+    @Override
+    public int getAnnotationSetRefListOffset(@Nonnull PoolMethod method) {
         return method.annotationSetRefListOffset;
     }
 
-    @Override public void setCodeItemOffset(@Nonnull PoolMethod method, int offset) {
+    @Override
+    public void setCodeItemOffset(@Nonnull PoolMethod method, int offset) {
         method.codeItemOffset = offset;
     }
 
-    @Override public int getCodeItemOffset(@Nonnull PoolMethod method) {
+    @Override
+    public int getCodeItemOffset(@Nonnull PoolMethod method) {
         return method.codeItemOffset;
     }
 
-    @Override public void writeDebugItem(@Nonnull DebugWriter<CharSequence, CharSequence> writer,
-                                         DebugItem debugItem) throws IOException {
+    @Override
+    public void writeDebugItem(@Nonnull DebugWriter<CharSequence, CharSequence> writer,
+                               DebugItem debugItem) throws IOException {
         switch (debugItem.getDebugItemType()) {
             case DebugItemType.START_LOCAL: {
-                StartLocal startLocal = (StartLocal)debugItem;
+                StartLocal startLocal = (StartLocal) debugItem;
                 writer.writeStartLocal(startLocal.getCodeAddress(),
                         startLocal.getRegister(),
                         startLocal.getName(),
@@ -484,12 +585,12 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
                 break;
             }
             case DebugItemType.END_LOCAL: {
-                EndLocal endLocal = (EndLocal)debugItem;
+                EndLocal endLocal = (EndLocal) debugItem;
                 writer.writeEndLocal(endLocal.getCodeAddress(), endLocal.getRegister());
                 break;
             }
             case DebugItemType.RESTART_LOCAL: {
-                RestartLocal restartLocal = (RestartLocal)debugItem;
+                RestartLocal restartLocal = (RestartLocal) debugItem;
                 writer.writeRestartLocal(restartLocal.getCodeAddress(), restartLocal.getRegister());
                 break;
             }
@@ -502,12 +603,12 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
                 break;
             }
             case DebugItemType.LINE_NUMBER: {
-                LineNumber lineNumber = (LineNumber)debugItem;
+                LineNumber lineNumber = (LineNumber) debugItem;
                 writer.writeLineNumber(lineNumber.getCodeAddress(), lineNumber.getLineNumber());
                 break;
             }
             case DebugItemType.SET_SOURCE_FILE: {
-                SetSourceFile setSourceFile = (SetSourceFile)debugItem;
+                SetSourceFile setSourceFile = (SetSourceFile) debugItem;
                 writer.writeSetSourceFile(setSourceFile.getCodeAddress(), setSourceFile.getSourceFile());
             }
             default:
@@ -515,27 +616,34 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         }
     }
 
-    @Override public int getItemIndex(@Nonnull PoolClassDef classDef) {
+    @Override
+    public int getItemIndex(@Nonnull PoolClassDef classDef) {
         return classDef.classDefIndex;
     }
 
-    @Nonnull @Override public Collection<? extends Map.Entry<PoolClassDef, Integer>> getItems() {
+    @Nonnull
+    @Override
+    public Collection<? extends Map.Entry<PoolClassDef, Integer>> getItems() {
         class MapEntry implements Map.Entry<PoolClassDef, Integer> {
-            @Nonnull private final PoolClassDef classDef;
+            @Nonnull
+            private final PoolClassDef classDef;
 
             public MapEntry(@Nonnull PoolClassDef classDef) {
                 this.classDef = classDef;
             }
 
-            @Override public PoolClassDef getKey() {
+            @Override
+            public PoolClassDef getKey() {
                 return classDef;
             }
 
-            @Override public Integer getValue() {
+            @Override
+            public Integer getValue() {
                 return classDef.classDefIndex;
             }
 
-            @Override public Integer setValue(Integer value) {
+            @Override
+            public Integer setValue(Integer value) {
                 int prev = classDef.classDefIndex;
                 classDef.classDefIndex = value;
                 return prev;
@@ -543,25 +651,31 @@ public class ClassPool implements ClassSection<CharSequence, CharSequence,
         }
 
         return new AbstractCollection<Entry<PoolClassDef, Integer>>() {
-            @Nonnull @Override public Iterator<Entry<PoolClassDef, Integer>> iterator() {
+            @Nonnull
+            @Override
+            public Iterator<Entry<PoolClassDef, Integer>> iterator() {
                 return new Iterator<Entry<PoolClassDef, Integer>>() {
                     Iterator<PoolClassDef> iter = internedItems.values().iterator();
 
-                    @Override public boolean hasNext() {
+                    @Override
+                    public boolean hasNext() {
                         return iter.hasNext();
                     }
 
-                    @Override public Entry<PoolClassDef, Integer> next() {
+                    @Override
+                    public Entry<PoolClassDef, Integer> next() {
                         return new MapEntry(iter.next());
                     }
 
-                    @Override public void remove() {
+                    @Override
+                    public void remove() {
                         throw new UnsupportedOperationException();
                     }
                 };
             }
 
-            @Override public int size() {
+            @Override
+            public int size() {
                 return internedItems.size();
             }
         };

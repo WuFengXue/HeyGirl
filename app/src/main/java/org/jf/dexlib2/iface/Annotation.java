@@ -31,12 +31,14 @@
 
 package org.jf.dexlib2.iface;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 /**
- * This class represents a specific instance of an annotation applied to a class/field/method/parameter
+ * This class represents a specific instance of an annotation applied to a
+ * class/field/method/parameter
  */
 public interface Annotation extends BasicAnnotation, Comparable<Annotation> {
     /**
@@ -55,7 +57,8 @@ public interface Annotation extends BasicAnnotation, Comparable<Annotation> {
      *
      * @return The type of this annotation
      */
-    @Nonnull String getType();
+    @Nonnull
+    String getType();
 
     /**
      * Gets a set of the name/value elements associated with this annotation.
@@ -64,7 +67,8 @@ public interface Annotation extends BasicAnnotation, Comparable<Annotation> {
      *
      * @return A set of AnnotationElements
      */
-    @Nonnull Set<? extends AnnotationElement> getElements();
+    @Nonnull
+    Set<? extends AnnotationElement> getElements();
 
     /**
      * Returns a hashcode for this Annotation.
@@ -80,28 +84,31 @@ public interface Annotation extends BasicAnnotation, Comparable<Annotation> {
      *
      * @return The hash code value for this Annotation
      */
-    @Override int hashCode();
+    @Override
+    int hashCode();
 
     /**
      * Compares this Annotation to another Annotation for equality.
      *
-     * This Annotation is equal to another Annotation if all of it's "fields" are equal. That is, if the return values
-     * of getVisibility(), getType(), and getElements() are all equal.
+     * This Annotation is equal to another Annotation if all of it's "fields" are equal. That is, if
+     * the return values of getVisibility(), getType(), and getElements() are all equal.
      *
      * @param o The object to be compared for equality with this Annotation
      * @return true if the specified object is equal to this Annotation
      */
-    @Override boolean equals(@Nullable Object o);
+    @Override
+    boolean equals(@Nullable Object o);
 
     /**
      * Compares this Annotation to another Annotation.
      *
-     * The comparison is based on the value of getVisibility(), getType() and getElements(), in that order. When
-     * comparing the set of elements, the comparison is done with the semantics of
+     * The comparison is based on the value of getVisibility(), getType() and getElements(), in that
+     * order. When comparing the set of elements, the comparison is done with the semantics of
      * org.jf.util.CollectionUtils.compareAsSet(), using the natural ordering of AnnotationElement.
      *
      * @param o The Annotation to compare with this Annotation
      * @return An integer representing the result of the comparison
      */
-    @Override int compareTo(Annotation o);
+    @Override
+    int compareTo(Annotation o);
 }

@@ -33,10 +33,13 @@ package org.jf.dexlib2.iface.instruction.formats;
 
 import org.jf.dexlib2.iface.instruction.PayloadInstruction;
 
-import javax.annotation.Nonnull;
 import java.util.List;
+
+import javax.annotation.Nonnull;
 
 public interface ArrayPayload extends PayloadInstruction {
     public int getElementWidth();
-    @Nonnull public List<Number> getArrayElements();
+
+    @Nonnull
+    public List<Number> getArrayElements();
 }

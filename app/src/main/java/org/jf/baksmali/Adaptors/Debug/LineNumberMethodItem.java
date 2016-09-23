@@ -34,8 +34,9 @@ package org.jf.baksmali.Adaptors.Debug;
 import org.jf.dexlib2.iface.debug.LineNumber;
 import org.jf.util.IndentingWriter;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
+
+import javax.annotation.Nonnull;
 
 public class LineNumberMethodItem extends DebugMethodItem {
     private final int lineNumber;

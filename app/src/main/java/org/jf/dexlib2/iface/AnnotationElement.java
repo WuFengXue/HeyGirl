@@ -45,14 +45,16 @@ public interface AnnotationElement extends Comparable<AnnotationElement> {
      *
      * @return The name of the element.
      */
-    @Nonnull String getName();
+    @Nonnull
+    String getName();
 
     /**
      * Gets the value of the element.
      *
      * @return The value of the element
      */
-    @Nonnull EncodedValue getValue();
+    @Nonnull
+    EncodedValue getValue();
 
     /**
      * Returns a hashcode for this AnnotationElement.
@@ -67,18 +69,20 @@ public interface AnnotationElement extends Comparable<AnnotationElement> {
      *
      * @return The hash code value for this AnnotationElement
      */
-    @Override int hashCode();
+    @Override
+    int hashCode();
 
     /**
      * Compares this AnnotationElement to another AnnotationElement for equality.
      *
-     * This AnnotationElement is equal to another AnnotationElement if all of it's "fields" are equal. That is, if
-     * the return values of getName() and getValue() are both equal.
+     * This AnnotationElement is equal to another AnnotationElement if all of it's "fields" are
+     * equal. That is, if the return values of getName() and getValue() are both equal.
      *
      * @param o The object to be compared for equality with this AnnotationElement
      * @return true if the specified object is equal to this AnnotationElement
      */
-    @Override boolean equals(@Nullable Object o);
+    @Override
+    boolean equals(@Nullable Object o);
 
     /**
      * Compares this AnnotationElement to another AnnotationElement.
@@ -88,5 +92,6 @@ public interface AnnotationElement extends Comparable<AnnotationElement> {
      * @param o The AnnotationElement to compare with this AnnotationElement
      * @return An integer representing the result of the comparison
      */
-    @Override int compareTo(AnnotationElement o);
+    @Override
+    int compareTo(AnnotationElement o);
 }

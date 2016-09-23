@@ -31,20 +31,18 @@
 
 package org.jf.dexlib2.analysis;
 
-import java.util.List;
-
 import org.jf.dexlib2.Opcode;
 
 import javax.annotation.Nonnull;
 
 public class OdexedFieldInstructionMapper {
-    private static Opcode[][][][] opcodeMap = new Opcode[][][][] {
+    private static Opcode[][][][] opcodeMap = new Opcode[][][][]{
             //get opcodes
-            new Opcode[][][] {
+            new Opcode[][][]{
                     //iget quick
-                    new Opcode[][] {
+                    new Opcode[][]{
                             //odexed
-                            new Opcode[] {
+                            new Opcode[]{
                                 /*Z*/   Opcode.IGET_QUICK,
                                 /*B*/   Opcode.IGET_QUICK,
                                 /*S*/   Opcode.IGET_QUICK,
@@ -54,7 +52,7 @@ public class OdexedFieldInstructionMapper {
                                 /*L,[*/ Opcode.IGET_OBJECT_QUICK
                             },
                             //deodexed
-                            new Opcode[] {
+                            new Opcode[]{
                                 /*Z*/   Opcode.IGET_BOOLEAN,
                                 /*B*/   Opcode.IGET_BYTE,
                                 /*S*/   Opcode.IGET_SHORT,
@@ -65,9 +63,9 @@ public class OdexedFieldInstructionMapper {
                             }
                     },
                     //iget volatile
-                    new Opcode[][] {
+                    new Opcode[][]{
                             //odexed
-                            new Opcode[] {
+                            new Opcode[]{
                                 /*Z*/   Opcode.IGET_VOLATILE,
                                 /*B*/   Opcode.IGET_VOLATILE,
                                 /*S*/   Opcode.IGET_VOLATILE,
@@ -77,7 +75,7 @@ public class OdexedFieldInstructionMapper {
                                 /*L,[*/ Opcode.IGET_OBJECT_VOLATILE
                             },
                             //deodexed
-                            new Opcode[] {
+                            new Opcode[]{
                                 /*Z*/   Opcode.IGET_BOOLEAN,
                                 /*B*/   Opcode.IGET_BYTE,
                                 /*S*/   Opcode.IGET_SHORT,
@@ -88,9 +86,9 @@ public class OdexedFieldInstructionMapper {
                             }
                     },
                     //sget volatile
-                    new Opcode[][] {
+                    new Opcode[][]{
                             //odexed
-                            new Opcode[] {
+                            new Opcode[]{
                                 /*Z*/   Opcode.SGET_VOLATILE,
                                 /*B*/   Opcode.SGET_VOLATILE,
                                 /*S*/   Opcode.SGET_VOLATILE,
@@ -100,7 +98,7 @@ public class OdexedFieldInstructionMapper {
                                 /*L,[*/ Opcode.SGET_OBJECT_VOLATILE
                             },
                             //deodexed
-                            new Opcode[] {
+                            new Opcode[]{
                                 /*Z*/   Opcode.SGET_BOOLEAN,
                                 /*B*/   Opcode.SGET_BYTE,
                                 /*S*/   Opcode.SGET_SHORT,
@@ -112,11 +110,11 @@ public class OdexedFieldInstructionMapper {
                     }
             },
             //put opcodes
-            new Opcode[][][] {
+            new Opcode[][][]{
                     //iput quick
-                    new Opcode[][] {
+                    new Opcode[][]{
                             //odexed
-                            new Opcode[] {
+                            new Opcode[]{
                                 /*Z*/   Opcode.IPUT_QUICK,
                                 /*B*/   Opcode.IPUT_QUICK,
                                 /*S*/   Opcode.IPUT_QUICK,
@@ -126,7 +124,7 @@ public class OdexedFieldInstructionMapper {
                                 /*L,[*/ Opcode.IPUT_OBJECT_QUICK
                             },
                             //deodexed
-                            new Opcode[] {
+                            new Opcode[]{
                                 /*Z*/   Opcode.IPUT_BOOLEAN,
                                 /*B*/   Opcode.IPUT_BYTE,
                                 /*S*/   Opcode.IPUT_SHORT,
@@ -137,9 +135,9 @@ public class OdexedFieldInstructionMapper {
                             }
                     },
                     //iput volatile
-                    new Opcode[][] {
+                    new Opcode[][]{
                             //odexed
-                            new Opcode[] {
+                            new Opcode[]{
                                 /*Z*/   Opcode.IPUT_VOLATILE,
                                 /*B*/   Opcode.IPUT_VOLATILE,
                                 /*S*/   Opcode.IPUT_VOLATILE,
@@ -149,7 +147,7 @@ public class OdexedFieldInstructionMapper {
                                 /*L,[*/ Opcode.IPUT_OBJECT_VOLATILE
                             },
                             //deodexed
-                            new Opcode[] {
+                            new Opcode[]{
                                 /*Z*/   Opcode.IPUT_BOOLEAN,
                                 /*B*/   Opcode.IPUT_BYTE,
                                 /*S*/   Opcode.IPUT_SHORT,
@@ -160,9 +158,9 @@ public class OdexedFieldInstructionMapper {
                             }
                     },
                     //sput volatile
-                    new Opcode[][] {
+                    new Opcode[][]{
                             //odexed
-                            new Opcode[] {
+                            new Opcode[]{
                                 /*Z*/   Opcode.SPUT_VOLATILE,
                                 /*B*/   Opcode.SPUT_VOLATILE,
                                 /*S*/   Opcode.SPUT_VOLATILE,
@@ -172,7 +170,7 @@ public class OdexedFieldInstructionMapper {
                                 /*L,[*/ Opcode.SPUT_OBJECT_VOLATILE
                             },
                             //deodexed
-                            new Opcode[] {
+                            new Opcode[]{
                                 /*Z*/   Opcode.SPUT_BOOLEAN,
                                 /*B*/   Opcode.SPUT_BYTE,
                                 /*S*/   Opcode.SPUT_SHORT,
@@ -221,19 +219,19 @@ public class OdexedFieldInstructionMapper {
     }
 
     @Nonnull
-    static Opcode getAndCheckDeodexedOpcodeForOdexedOpcode(@Nonnull String fieldType, @Nonnull Opcode odexedOpcode,MethodAnalyzer ma) {
-        int opcodeType = odexedOpcode.setsRegister()?0:1;
+    static Opcode getAndCheckDeodexedOpcodeForOdexedOpcode(@Nonnull String fieldType, @Nonnull Opcode odexedOpcode, MethodAnalyzer ma) {
+        int opcodeType = odexedOpcode.setsRegister() ? 0 : 1;
         int opcodeSubType = getOpcodeSubtype(odexedOpcode);
         int typeIndex = getTypeIndex(fieldType.charAt(0));
         Opcode correctOdexedOpcode, deodexedOpcode;
-        
+
         correctOdexedOpcode = opcodeMap[opcodeType][opcodeSubType][0][typeIndex];
         deodexedOpcode = opcodeMap[opcodeType][opcodeSubType][1][typeIndex];
         if (correctOdexedOpcode != odexedOpcode) {
             throw new AnalysisException(String.format("Incorrect field type \"%s\" for %s", fieldType,
                     odexedOpcode.name));
         }
-        
+
         return deodexedOpcode;
     }
 }

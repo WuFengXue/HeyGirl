@@ -34,11 +34,13 @@ package org.jf.dexlib2.dexbacked.util;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexReader;
 
-import javax.annotation.Nonnull;
 import java.util.AbstractSet;
 
+import javax.annotation.Nonnull;
+
 public abstract class VariableSizeSet<T> extends AbstractSet<T> {
-    @Nonnull private final DexBackedDexFile dexFile;
+    @Nonnull
+    private final DexBackedDexFile dexFile;
     private final int offset;
     private final int size;
 
@@ -61,5 +63,8 @@ public abstract class VariableSizeSet<T> extends AbstractSet<T> {
         };
     }
 
-    @Override public int size() { return size; }
+    @Override
+    public int size() {
+        return size;
+    }
 }

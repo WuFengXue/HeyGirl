@@ -1,17 +1,9 @@
 package com.android.reverse.smali;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import com.google.common.collect.Lists;
 
-import javax.annotation.Nonnull;
+import com.android.reverse.collecter.ModuleContext;
+import com.android.reverse.util.Logger;
 
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.Token;
@@ -25,155 +17,164 @@ import org.jf.smali.smaliFlexLexer;
 import org.jf.smali.smaliParser;
 import org.jf.smali.smaliTreeWalker;
 
-import com.android.reverse.collecter.ModuleContext;
-import com.android.reverse.util.Logger;
-import com.google.common.collect.Lists;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import javax.annotation.Nonnull;
 
 public class DexFileBuilder {
 
-	public static boolean buildDexFile(String smaliPath,String dexFileName) {
+    public static boolean buildDexFile(String smaliPath, String dexFileName) {
 
-		int jobs = 8;
-		boolean allowOdex = false;
-		boolean verboseErrors = false;
-		boolean printTokens = false;
+        int jobs = 8;
+        boolean allowOdex = false;
+        boolean verboseErrors = false;
+        boolean printTokens = false;
 
-		int apiLevel = ModuleContext.getInstance().getApiLevel();
+        int apiLevel = ModuleContext.getInstance().getApiLevel();
 
-		try {
-			LinkedHashSet<File> filesToProcess = new LinkedHashSet<File>();
+        try {
+            LinkedHashSet<File> filesToProcess = new LinkedHashSet<File>();
 
-			File argFile = new File(smaliPath);
+            File argFile = new File(smaliPath);
 
-			if (!argFile.exists()) {
-				throw new RuntimeException("Cannot find file or directory \""
-						+ smaliPath + "\"");
-			}
+            if (!argFile.exists()) {
+                throw new RuntimeException("Cannot find file or directory \""
+                        + smaliPath + "\"");
+            }
 
-			if (argFile.isDirectory()) {
-				getSmaliFilesInDir(argFile, filesToProcess);
-			}
+            if (argFile.isDirectory()) {
+                getSmaliFilesInDir(argFile, filesToProcess);
+            }
 
-			boolean errors = false;
+            boolean errors = false;
 
-			final DexBuilder dexBuilder = DexBuilder.makeDexBuilder(apiLevel);
-			ExecutorService executor = Executors.newFixedThreadPool(jobs);
-			List<Future<Boolean>> tasks = Lists.newArrayList();
+            final DexBuilder dexBuilder = DexBuilder.makeDexBuilder(apiLevel);
+            ExecutorService executor = Executors.newFixedThreadPool(jobs);
+            List<Future<Boolean>> tasks = Lists.newArrayList();
 
-			final boolean finalVerboseErrors = verboseErrors;
-			final boolean finalPrintTokens = printTokens;
-			final boolean finalAllowOdex = allowOdex;
-			final int finalApiLevel = apiLevel;
-			for (final File file : filesToProcess) {
-				tasks.add(executor.submit(new Callable<Boolean>() {
-					@Override
-					public Boolean call() throws Exception {
-						return assembleSmaliFile(file, dexBuilder,
-								finalVerboseErrors, finalPrintTokens,
-								finalAllowOdex, finalApiLevel);
-					}
-				}));
-			}
+            final boolean finalVerboseErrors = verboseErrors;
+            final boolean finalPrintTokens = printTokens;
+            final boolean finalAllowOdex = allowOdex;
+            final int finalApiLevel = apiLevel;
+            for (final File file : filesToProcess) {
+                tasks.add(executor.submit(new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        return assembleSmaliFile(file, dexBuilder,
+                                finalVerboseErrors, finalPrintTokens,
+                                finalAllowOdex, finalApiLevel);
+                    }
+                }));
+            }
 
-			for (Future<Boolean> task : tasks) {
-				while (true) {
-					try {
-						if (!task.get()) {
-							errors = true;
-						}
-					} catch (InterruptedException ex) {
-						continue;
-					}
-					break;
-				}
-			}
+            for (Future<Boolean> task : tasks) {
+                while (true) {
+                    try {
+                        if (!task.get()) {
+                            errors = true;
+                        }
+                    } catch (InterruptedException ex) {
+                        continue;
+                    }
+                    break;
+                }
+            }
 
-			executor.shutdown();
+            executor.shutdown();
 
-			if (errors) {
-				Logger.log("build the dexfile error0");
-				return false;
-			}
+            if (errors) {
+                Logger.log("build the dexfile error0");
+                return false;
+            }
 
-			dexBuilder.writeTo(new FileDataStore(new File(dexFileName)));
-			Logger.log("build the dexfile ok");
-			return true;
-		} catch (RuntimeException ex) {
-			Logger.log("build the dexfile error1");
-			return false;
-		} catch (Throwable ex) {
-			Logger.log("build the dexfile error2");
-			return false;
-		}
-	}
+            dexBuilder.writeTo(new FileDataStore(new File(dexFileName)));
+            Logger.log("build the dexfile ok");
+            return true;
+        } catch (RuntimeException ex) {
+            Logger.log("build the dexfile error1");
+            return false;
+        } catch (Throwable ex) {
+            Logger.log("build the dexfile error2");
+            return false;
+        }
+    }
 
-	private static void getSmaliFilesInDir(@Nonnull File dir,
-			@Nonnull Set<File> smaliFiles) {
-		File[] files = dir.listFiles();
-		if (files != null) {
-			for (File file : files) {
-				if (file.isDirectory()) {
-					getSmaliFilesInDir(file, smaliFiles);
-				} else if (file.getName().endsWith(".smali")) {
-					smaliFiles.add(file);
-				}
-			}
-		}
-	}
+    private static void getSmaliFilesInDir(@Nonnull File dir,
+                                           @Nonnull Set<File> smaliFiles) {
+        File[] files = dir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    getSmaliFilesInDir(file, smaliFiles);
+                } else if (file.getName().endsWith(".smali")) {
+                    smaliFiles.add(file);
+                }
+            }
+        }
+    }
 
-	private static boolean assembleSmaliFile(File smaliFile,
-			DexBuilder dexBuilder, boolean verboseErrors, boolean printTokens,
-			boolean allowOdex, int apiLevel) throws Exception {
-		
-		Logger.log("start assemble the file = " + smaliFile.getName());
-		CommonTokenStream tokens;
+    private static boolean assembleSmaliFile(File smaliFile,
+                                             DexBuilder dexBuilder, boolean verboseErrors, boolean printTokens,
+                                             boolean allowOdex, int apiLevel) throws Exception {
 
-		LexerErrorInterface lexer;
+        Logger.log("start assemble the file = " + smaliFile.getName());
+        CommonTokenStream tokens;
 
-		FileInputStream fis = new FileInputStream(smaliFile.getAbsolutePath());
-		InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
+        LexerErrorInterface lexer;
 
-		lexer = new smaliFlexLexer(reader);
-		((smaliFlexLexer) lexer).setSourceFile(smaliFile);
-		tokens = new CommonTokenStream((TokenSource) lexer);
+        FileInputStream fis = new FileInputStream(smaliFile.getAbsolutePath());
+        InputStreamReader reader = new InputStreamReader(fis, "UTF-8");
 
-		if (printTokens) {
-			tokens.getTokens();
+        lexer = new smaliFlexLexer(reader);
+        ((smaliFlexLexer) lexer).setSourceFile(smaliFile);
+        tokens = new CommonTokenStream((TokenSource) lexer);
 
-			for (int i = 0; i < tokens.size(); i++) {
-				Token token = tokens.get(i);
-				if (token.getChannel() == smaliParser.HIDDEN) {
-					continue;
-				}
+        if (printTokens) {
+            tokens.getTokens();
 
-				System.out.println(smaliParser.tokenNames[token.getType()]
-						+ ": " + token.getText());
-			}
-		}
+            for (int i = 0; i < tokens.size(); i++) {
+                Token token = tokens.get(i);
+                if (token.getChannel() == smaliParser.HIDDEN) {
+                    continue;
+                }
 
-		smaliParser parser = new smaliParser(tokens);
-		parser.setVerboseErrors(verboseErrors);
-		parser.setAllowOdex(allowOdex);
-		parser.setApiLevel(apiLevel);
+                System.out.println(smaliParser.tokenNames[token.getType()]
+                        + ": " + token.getText());
+            }
+        }
 
-		smaliParser.smali_file_return result = parser.smali_file();
+        smaliParser parser = new smaliParser(tokens);
+        parser.setVerboseErrors(verboseErrors);
+        parser.setAllowOdex(allowOdex);
+        parser.setApiLevel(apiLevel);
 
-		if (parser.getNumberOfSyntaxErrors() > 0
-				|| lexer.getNumberOfSyntaxErrors() > 0) {
-			return false;
-		}
+        smaliParser.smali_file_return result = parser.smali_file();
 
-		CommonTree t = result.getTree();
+        if (parser.getNumberOfSyntaxErrors() > 0
+                || lexer.getNumberOfSyntaxErrors() > 0) {
+            return false;
+        }
 
-		CommonTreeNodeStream treeStream = new CommonTreeNodeStream(t);
-		treeStream.setTokenStream(tokens);
+        CommonTree t = result.getTree();
 
-		smaliTreeWalker dexGen = new smaliTreeWalker(treeStream);
-		dexGen.setVerboseErrors(verboseErrors);
-		dexGen.setDexBuilder(dexBuilder);
-		dexGen.smali_file();
+        CommonTreeNodeStream treeStream = new CommonTreeNodeStream(t);
+        treeStream.setTokenStream(tokens);
 
-		return dexGen.getNumberOfSyntaxErrors() == 0;
-	}
+        smaliTreeWalker dexGen = new smaliTreeWalker(treeStream);
+        dexGen.setVerboseErrors(verboseErrors);
+        dexGen.setDexBuilder(dexBuilder);
+        dexGen.smali_file();
+
+        return dexGen.getNumberOfSyntaxErrors() == 0;
+    }
 
 }

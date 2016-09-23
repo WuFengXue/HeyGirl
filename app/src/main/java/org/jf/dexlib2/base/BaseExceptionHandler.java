@@ -33,23 +33,48 @@ package org.jf.dexlib2.base;
 
 import com.google.common.base.Objects;
 import com.google.common.primitives.Ints;
+
 import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.iface.ExceptionHandler;
 import org.jf.dexlib2.iface.reference.TypeReference;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Comparator;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public abstract class BaseExceptionHandler implements ExceptionHandler {
-    @Nullable @Override public TypeReference getExceptionTypeReference() {
+    public static final Comparator<ExceptionHandler> BY_EXCEPTION = new Comparator<ExceptionHandler>() {
+        @Override
+        public int compare(ExceptionHandler o1, ExceptionHandler o2) {
+            String exceptionType1 = o1.getExceptionType();
+            if (exceptionType1 == null) {
+                if (o2.getExceptionType() != null) {
+                    return 1;
+                }
+                return 0;
+            } else {
+                String exceptionType2 = o2.getExceptionType();
+                if (exceptionType2 == null) {
+                    return -1;
+                }
+                return exceptionType1.compareTo(o2.getExceptionType());
+            }
+        }
+    };
+
+    @Nullable
+    @Override
+    public TypeReference getExceptionTypeReference() {
         final String exceptionType = getExceptionType();
         if (exceptionType == null) {
             return null;
         }
 
         return new BaseTypeReference() {
-            @Nonnull @Override public String getType() {
+            @Nonnull
+            @Override
+            public String getType() {
                 return exceptionType;
             }
         };
@@ -58,16 +83,16 @@ public abstract class BaseExceptionHandler implements ExceptionHandler {
     @Override
     public int hashCode() {
         String exceptionType = getExceptionType();
-        int hashCode = exceptionType==null?0:exceptionType.hashCode();
-        return hashCode*31 + getHandlerCodeAddress();
+        int hashCode = exceptionType == null ? 0 : exceptionType.hashCode();
+        return hashCode * 31 + getHandlerCodeAddress();
     }
 
     @Override
     public boolean equals(@Nullable Object o) {
         if (o instanceof ExceptionHandler) {
-            ExceptionHandler other = (ExceptionHandler)o;
+            ExceptionHandler other = (ExceptionHandler) o;
             return Objects.equal(getExceptionType(), other.getExceptionType()) &&
-                   (getHandlerCodeAddress() == other.getHandlerCodeAddress());
+                    (getHandlerCodeAddress() == other.getHandlerCodeAddress());
         }
         return false;
     }
@@ -90,24 +115,4 @@ public abstract class BaseExceptionHandler implements ExceptionHandler {
         }
         return Ints.compare(getHandlerCodeAddress(), o.getHandlerCodeAddress());
     }
-
-
-
-    public static final Comparator<ExceptionHandler> BY_EXCEPTION = new Comparator<ExceptionHandler>() {
-        @Override public int compare(ExceptionHandler o1, ExceptionHandler o2) {
-            String exceptionType1 = o1.getExceptionType();
-            if (exceptionType1 == null) {
-                if (o2.getExceptionType() != null) {
-                    return 1;
-                }
-                return 0;
-            } else {
-                String exceptionType2 = o2.getExceptionType();
-                if (exceptionType2 == null) {
-                    return -1;
-                }
-                return exceptionType1.compareTo(o2.getExceptionType());
-            }
-        }
-    };
 }

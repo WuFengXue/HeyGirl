@@ -35,15 +35,18 @@ import org.jf.baksmali.Adaptors.RegisterFormatter;
 import org.jf.dexlib2.iface.debug.RestartLocal;
 import org.jf.util.IndentingWriter;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 
+import javax.annotation.Nonnull;
+
 public class RestartLocalMethodItem extends DebugMethodItem {
-    @Nonnull private final RestartLocal restartLocal;
-    @Nonnull private final RegisterFormatter registerFormatter;
+    @Nonnull
+    private final RestartLocal restartLocal;
+    @Nonnull
+    private final RegisterFormatter registerFormatter;
 
     public RestartLocalMethodItem(int codeAddress, int sortOrder, @Nonnull RegisterFormatter registerFormatter,
-                              @Nonnull RestartLocal restartLocal) {
+                                  @Nonnull RestartLocal restartLocal) {
         super(codeAddress, sortOrder);
         this.restartLocal = restartLocal;
         this.registerFormatter = registerFormatter;

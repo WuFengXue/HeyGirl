@@ -57,26 +57,30 @@ public interface CharEncodedValue extends EncodedValue {
      *
      * @return The hash code value for this EncodedCharValue
      */
-    @Override int hashCode();
+    @Override
+    int hashCode();
 
     /**
      * Compares this CharEncodedValue to another CharEncodedValue for equality.
      *
-     * This CharEncodedValue is equal to another CharEncodedValue if the values returned by getValue() are equal.
+     * This CharEncodedValue is equal to another CharEncodedValue if the values returned by
+     * getValue() are equal.
      *
      * @param o The object to be compared for equality with this CharEncodedValue
      * @return true if the specified object is equal to this CharEncodedValue
      */
-    @Override boolean equals(@Nullable Object o);
+    @Override
+    boolean equals(@Nullable Object o);
 
     /**
      * Compare this CharEncodedValue to another EncodedValue.
      *
-     * The comparison is first done on the return values of getValueType(). If the other value is another
-     * CharEncodedValue, the return values of getValue() are compared.
+     * The comparison is first done on the return values of getValueType(). If the other value is
+     * another CharEncodedValue, the return values of getValue() are compared.
      *
      * @param o The EncodedValue to compare with this CharEncodedValue
      * @return An integer representing the result of the comparison
      */
-    @Override int compareTo(@Nonnull EncodedValue o);
+    @Override
+    int compareTo(@Nonnull EncodedValue o);
 }

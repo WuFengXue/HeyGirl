@@ -32,7 +32,6 @@ import java.util.List;
  *
  * @author Tahseen Ur Rehman
  * @email tahseen.ur.rehman {at.spam.me.not} gmail.com
- * @param <T>
  */
 class RadixTreeNode<T> {
     private String key;
@@ -44,8 +43,7 @@ class RadixTreeNode<T> {
     private T value;
 
     /**
-     * intailize the fields with default values to avoid null reference checks
-     * all over the places
+     * intailize the fields with default values to avoid null reference checks all over the places
      */
     public RadixTreeNode() {
         key = "";

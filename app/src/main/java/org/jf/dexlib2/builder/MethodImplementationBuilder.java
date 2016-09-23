@@ -35,9 +35,10 @@ import org.jf.dexlib2.iface.MethodImplementation;
 import org.jf.dexlib2.iface.reference.StringReference;
 import org.jf.dexlib2.iface.reference.TypeReference;
 
+import java.util.HashMap;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashMap;
 
 public class MethodImplementationBuilder {
     // Contains all named labels - both placed and unplaced
@@ -60,7 +61,8 @@ public class MethodImplementationBuilder {
     /**
      * Adds a new named label at the current location.
      *
-     * Any previous unplaced references to a label of this name will now refer to this label/location
+     * Any previous unplaced references to a label of this name will now refer to this
+     * label/location
      *
      * @param name The name of the label to add
      * @return A LabelRef representing the label
@@ -86,9 +88,9 @@ public class MethodImplementationBuilder {
     /**
      * Get a reference to a label with the given name.
      *
-     * If a label with that name has not been added yet, a new one is created, but is left
-     * in an unplaced state. It is assumed that addLabel(name) will be called at a later
-     * point to define the location of the label.
+     * If a label with that name has not been added yet, a new one is created, but is left in an
+     * unplaced state. It is assumed that addLabel(name) will be called at a later point to define
+     * the location of the label.
      *
      * @param name The name of the label to get
      * @return A LabelRef representing the label
@@ -148,6 +150,6 @@ public class MethodImplementationBuilder {
 
     public void addInstruction(@Nullable BuilderInstruction instruction) {
         impl.addInstruction(instruction);
-        currentLocation = impl.instructionList.get(impl.instructionList.size()-1);
+        currentLocation = impl.instructionList.get(impl.instructionList.size() - 1);
     }
 }

@@ -41,7 +41,7 @@ public class AnnotationFormatter {
     public static void writeTo(IndentingWriter writer,
                                Collection<? extends Annotation> annotations) throws IOException {
         boolean first = true;
-        for (Annotation annotation: annotations) {
+        for (Annotation annotation : annotations) {
             if (!first) {
                 writer.write('\n');
             }

@@ -31,11 +31,13 @@
 
 package org.jf.dexlib2.iface;
 
-import javax.annotation.Nonnull;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 /**
- * This class is a high level representation of a dex file - essentially a set of class definitions.
+ * This class is a high level representation of a dex file - essentially a set of class
+ * definitions.
  */
 public interface DexFile {
     /**
@@ -45,5 +47,6 @@ public interface DexFile {
      *
      * @return A set of the classes defined in this dex file
      */
-    @Nonnull Set<? extends ClassDef> getClasses();
+    @Nonnull
+    Set<? extends ClassDef> getClasses();
 }

@@ -35,12 +35,14 @@ import org.jf.dexlib2.iface.debug.SetSourceFile;
 import org.jf.util.IndentingWriter;
 import org.jf.util.StringUtils;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public class SetSourceFileMethodItem extends DebugMethodItem {
-    @Nullable private final String sourceFile;
+    @Nullable
+    private final String sourceFile;
 
     public SetSourceFileMethodItem(int codeAddress, int sortOrder, @Nonnull SetSourceFile setSourceFile) {
         super(codeAddress, sortOrder);

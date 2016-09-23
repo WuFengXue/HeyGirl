@@ -37,7 +37,18 @@ import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.VerificationError;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile.InvalidItemIndex;
-import org.jf.dexlib2.iface.instruction.*;
+import org.jf.dexlib2.iface.instruction.FieldOffsetInstruction;
+import org.jf.dexlib2.iface.instruction.FiveRegisterInstruction;
+import org.jf.dexlib2.iface.instruction.InlineIndexInstruction;
+import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.instruction.NarrowLiteralInstruction;
+import org.jf.dexlib2.iface.instruction.OneRegisterInstruction;
+import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
+import org.jf.dexlib2.iface.instruction.RegisterRangeInstruction;
+import org.jf.dexlib2.iface.instruction.ThreeRegisterInstruction;
+import org.jf.dexlib2.iface.instruction.TwoRegisterInstruction;
+import org.jf.dexlib2.iface.instruction.VtableIndexInstruction;
+import org.jf.dexlib2.iface.instruction.WideLiteralInstruction;
 import org.jf.dexlib2.iface.instruction.formats.Instruction20bc;
 import org.jf.dexlib2.iface.instruction.formats.Instruction31t;
 import org.jf.dexlib2.iface.instruction.formats.UnknownInstruction;
@@ -46,13 +57,16 @@ import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.util.ExceptionWithContext;
 import org.jf.util.IndentingWriter;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 public class InstructionMethodItem<T extends Instruction> extends MethodItem {
-    @Nonnull protected final MethodDefinition methodDef;
-    @Nonnull protected final T instruction;
+    @Nonnull
+    protected final MethodDefinition methodDef;
+    @Nonnull
+    protected final T instruction;
 
     public InstructionMethodItem(@Nonnull MethodDefinition methodDef, int codeAddress, @Nonnull T instruction) {
         super(codeAddress);
@@ -76,7 +90,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         }
 
         return opcode.isOdexedInstanceVolatile() || opcode.isOdexedStaticVolatile() ||
-            opcode == Opcode.THROW_VERIFICATION_ERROR;
+                opcode == Opcode.THROW_VERIFICATION_ERROR;
     }
 
     @Override
@@ -88,7 +102,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         boolean commentOutInstruction = false;
 
         if (instruction instanceof Instruction20bc) {
-            int verificationError = ((Instruction20bc)instruction).getVerificationError();
+            int verificationError = ((Instruction20bc) instruction).getVerificationError();
             verificationErrorName = VerificationError.getVerificationErrorName(verificationError);
             if (verificationErrorName == null) {
                 writer.write("#was invalid verification error type: ");
@@ -99,7 +113,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
         }
 
         if (instruction instanceof ReferenceInstruction) {
-            ReferenceInstruction referenceInstruction = (ReferenceInstruction)instruction;
+            ReferenceInstruction referenceInstruction = (ReferenceInstruction) instruction;
             try {
                 Reference reference = referenceInstruction.getReference();
                 referenceString = ReferenceUtil.getReferenceString(reference);
@@ -111,8 +125,8 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
                 commentOutInstruction = true;
 
                 referenceString = String.format("%s@%d",
-                    ReferenceType.toString(referenceInstruction.getReferenceType()),
-                    ex.getInvalidIndex());
+                        ReferenceType.toString(referenceInstruction.getReferenceType()),
+                        ex.getInvalidIndex());
             } catch (ReferenceType.InvalidReferenceTypeException ex) {
                 writer.write("#invalid reference type: ");
                 writer.printSignedIntAsDec(ex.getReferenceType());
@@ -139,7 +153,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
             }
 
             try {
-                methodDef.findSwitchPayload(this.codeAddress + ((Instruction31t)instruction).getCodeOffset(),
+                methodDef.findSwitchPayload(this.codeAddress + ((Instruction31t) instruction).getCodeOffset(),
                         payloadOpcode);
             } catch (InvalidSwitchPayload ex) {
                 writer.write("#invalid payload reference");
@@ -167,7 +181,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
             case Format10x:
                 if (instruction instanceof UnknownInstruction) {
                     writer.write("#unknown opcode: 0x");
-                    writer.printUnsignedLongAsHex(((UnknownInstruction)instruction).getOriginalOpcode());
+                    writer.printUnsignedLongAsHex(((UnknownInstruction) instruction).getOriginalOpcode());
                     writer.write('\n');
                 }
                 writeOpcode(writer);
@@ -356,11 +370,11 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     }
 
     protected void writeFirstRegister(IndentingWriter writer) throws IOException {
-        writeRegister(writer, ((OneRegisterInstruction)instruction).getRegisterA());
+        writeRegister(writer, ((OneRegisterInstruction) instruction).getRegisterA());
     }
 
     protected void writeSecondRegister(IndentingWriter writer) throws IOException {
-        writeRegister(writer, ((TwoRegisterInstruction)instruction).getRegisterB());
+        writeRegister(writer, ((TwoRegisterInstruction) instruction).getRegisterB());
     }
 
     protected void writeThirdRegister(IndentingWriter writer) throws IOException {
@@ -368,7 +382,7 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     }
 
     protected void writeInvokeRegisters(IndentingWriter writer) throws IOException {
-        FiveRegisterInstruction instruction = (FiveRegisterInstruction)this.instruction;
+        FiveRegisterInstruction instruction = (FiveRegisterInstruction) this.instruction;
         final int regCount = instruction.getRegisterCount();
 
         writer.write('{');
@@ -413,27 +427,27 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
     }
 
     protected void writeInvokeRangeRegisters(IndentingWriter writer) throws IOException {
-        RegisterRangeInstruction instruction = (RegisterRangeInstruction)this.instruction;
+        RegisterRangeInstruction instruction = (RegisterRangeInstruction) this.instruction;
 
         int regCount = instruction.getRegisterCount();
         if (regCount == 0) {
             writer.write("{}");
         } else {
             int startRegister = instruction.getStartRegister();
-            methodDef.registerFormatter.writeRegisterRange(writer, startRegister, startRegister+regCount-1);
+            methodDef.registerFormatter.writeRegisterRange(writer, startRegister, startRegister + regCount - 1);
         }
     }
 
     protected void writeLiteral(IndentingWriter writer) throws IOException {
-        LongRenderer.writeSignedIntOrLongTo(writer, ((WideLiteralInstruction)instruction).getWideLiteral());
+        LongRenderer.writeSignedIntOrLongTo(writer, ((WideLiteralInstruction) instruction).getWideLiteral());
     }
 
     protected void writeResourceId(IndentingWriter writer) throws IOException {
-        writeResourceId(writer, ((NarrowLiteralInstruction)instruction).getNarrowLiteral());
+        writeResourceId(writer, ((NarrowLiteralInstruction) instruction).getNarrowLiteral());
     }
 
     protected void writeResourceId(IndentingWriter writer, int val) throws IOException {
-        Map<Integer,String> resourceIds = methodDef.classDef.options.resourceIds;
+        Map<Integer, String> resourceIds = methodDef.classDef.options.resourceIds;
         String resource = resourceIds.get(Integer.valueOf(val));
         if (resource != null) {
             writer.write("    # ");
@@ -443,16 +457,16 @@ public class InstructionMethodItem<T extends Instruction> extends MethodItem {
 
     protected void writeFieldOffset(IndentingWriter writer) throws IOException {
         writer.write("field@0x");
-        writer.printUnsignedLongAsHex(((FieldOffsetInstruction)instruction).getFieldOffset());
+        writer.printUnsignedLongAsHex(((FieldOffsetInstruction) instruction).getFieldOffset());
     }
 
     protected void writeInlineIndex(IndentingWriter writer) throws IOException {
         writer.write("inline@");
-        writer.printSignedIntAsDec(((InlineIndexInstruction)instruction).getInlineIndex());
+        writer.printSignedIntAsDec(((InlineIndexInstruction) instruction).getInlineIndex());
     }
 
     protected void writeVtableIndex(IndentingWriter writer) throws IOException {
         writer.write("vtable@");
-        writer.printSignedIntAsDec(((VtableIndexInstruction)instruction).getVtableIndex());
+        writer.printSignedIntAsDec(((VtableIndexInstruction) instruction).getVtableIndex());
     }
 }

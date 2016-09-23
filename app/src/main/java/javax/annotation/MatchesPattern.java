@@ -13,8 +13,7 @@ import javax.annotation.meta.When;
 @TypeQualifier(applicableTo = String.class)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MatchesPattern {
-    @RegEx
-    String value();
+    @RegEx String value();
 
     int flags() default 0;
 

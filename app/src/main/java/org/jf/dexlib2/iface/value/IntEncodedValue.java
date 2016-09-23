@@ -57,26 +57,30 @@ public interface IntEncodedValue extends EncodedValue {
      *
      * @return The hash code value for this EncodedIntValue
      */
-    @Override int hashCode();
+    @Override
+    int hashCode();
 
     /**
      * Compares this IntEncodedValue to another IntEncodedValue for equality.
      *
-     * This IntEncodedValue is equal to another IntEncodedValue if the values returned by getValue() are equal.
+     * This IntEncodedValue is equal to another IntEncodedValue if the values returned by getValue()
+     * are equal.
      *
      * @param o The object to be compared for equality with this IntEncodedValue
      * @return true if the specified object is equal to this IntEncodedValue
      */
-    @Override boolean equals(@Nullable Object o);
+    @Override
+    boolean equals(@Nullable Object o);
 
     /**
      * Compare this IntEncodedValue to another EncodedValue.
      *
-     * The comparison is first done on the return values of getValueType(). If the other value is another
-     * IntEncodedValue, the return values of getValue() are compared.
+     * The comparison is first done on the return values of getValueType(). If the other value is
+     * another IntEncodedValue, the return values of getValue() are compared.
      *
      * @param o The EncodedValue to compare with this IntEncodedValue
      * @return An integer representing the result of the comparison
      */
-    @Override int compareTo(@Nonnull EncodedValue o);
+    @Override
+    int compareTo(@Nonnull EncodedValue o);
 }

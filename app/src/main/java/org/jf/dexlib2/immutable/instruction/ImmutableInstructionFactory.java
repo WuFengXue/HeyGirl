@@ -36,9 +36,10 @@ import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.writer.InstructionFactory;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 public class ImmutableInstructionFactory implements InstructionFactory<Reference> {
     public static final ImmutableInstructionFactory INSTANCE = new ImmutableInstructionFactory();
@@ -217,7 +218,7 @@ public class ImmutableInstructionFactory implements InstructionFactory<Reference
     }
 
     public ImmutableArrayPayload makeArrayPayload(int elementWidth,
-                                                @Nullable List<Number> arrayElements) {
+                                                  @Nullable List<Number> arrayElements) {
         return new ImmutableArrayPayload(elementWidth, arrayElements);
     }
 }

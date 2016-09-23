@@ -32,15 +32,17 @@
 package org.jf.dexlib2.dexbacked.util;
 
 import com.google.common.collect.ImmutableSet;
+
 import org.jf.dexlib2.base.BaseMethodParameter;
 import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.MethodParameter;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class ParameterIterator implements Iterator<MethodParameter> {
     private final Iterator<? extends CharSequence> parameterTypes;
@@ -55,11 +57,13 @@ public class ParameterIterator implements Iterator<MethodParameter> {
         this.parameterNames = parameterNames;
     }
 
-    @Override public boolean hasNext() {
+    @Override
+    public boolean hasNext() {
         return parameterTypes.hasNext();
     }
 
-    @Override public MethodParameter next() {
+    @Override
+    public MethodParameter next() {
         @Nonnull final String type = parameterTypes.next().toString();
         @Nonnull final Set<? extends Annotation> annotations;
         @Nullable final String name;
@@ -77,13 +81,28 @@ public class ParameterIterator implements Iterator<MethodParameter> {
         }
 
         return new BaseMethodParameter() {
-            @Nonnull @Override public Set<? extends Annotation> getAnnotations() { return annotations; }
-            @Nullable @Override public String getName() { return name; }
-            @Nonnull @Override public String getType() { return type; }
+            @Nonnull
+            @Override
+            public Set<? extends Annotation> getAnnotations() {
+                return annotations;
+            }
+
+            @Nullable
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Nonnull
+            @Override
+            public String getType() {
+                return type;
+            }
         };
     }
 
-    @Override public void remove() {
+    @Override
+    public void remove() {
         throw new UnsupportedOperationException();
     }
 }

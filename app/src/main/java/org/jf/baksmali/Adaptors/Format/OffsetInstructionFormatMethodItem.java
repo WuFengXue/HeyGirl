@@ -35,8 +35,9 @@ import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.OffsetInstruction;
 import org.jf.util.IndentingWriter;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
+
+import javax.annotation.Nonnull;
 
 public class OffsetInstructionFormatMethodItem extends InstructionMethodItem<OffsetInstruction> {
     protected LabelMethodItem label;

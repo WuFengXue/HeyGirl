@@ -5,9 +5,9 @@ import com.android.reverse.collecter.NativeHookCollecter;
 
 public class NativeHookInfoHandler implements CommandHandler {
 
-	@Override
-	public void doAction() {
+    @Override
+    public void doAction() {
         NativeHookCollecter.getInstance().parserNativeHookInfo();
-	}
+    }
 
 }

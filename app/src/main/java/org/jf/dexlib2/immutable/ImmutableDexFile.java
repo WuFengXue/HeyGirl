@@ -32,16 +32,19 @@
 package org.jf.dexlib2.immutable;
 
 import com.google.common.collect.ImmutableSet;
+
 import org.jf.dexlib2.iface.ClassDef;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.ImmutableUtils;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collection;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public class ImmutableDexFile implements DexFile {
-    @Nonnull protected final ImmutableSet<? extends ImmutableClassDef> classes;
+    @Nonnull
+    protected final ImmutableSet<? extends ImmutableClassDef> classes;
 
     public ImmutableDexFile(@Nullable Collection<? extends ClassDef> classes) {
         this.classes = ImmutableClassDef.immutableSetOf(classes);
@@ -53,10 +56,14 @@ public class ImmutableDexFile implements DexFile {
 
     public static ImmutableDexFile of(DexFile dexFile) {
         if (dexFile instanceof ImmutableDexFile) {
-            return (ImmutableDexFile)dexFile;
+            return (ImmutableDexFile) dexFile;
         }
         return new ImmutableDexFile(dexFile.getClasses());
     }
 
-    @Nonnull @Override public ImmutableSet<? extends ImmutableClassDef> getClasses() { return classes; }
+    @Nonnull
+    @Override
+    public ImmutableSet<? extends ImmutableClassDef> getClasses() {
+        return classes;
+    }
 }

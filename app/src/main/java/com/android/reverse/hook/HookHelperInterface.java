@@ -4,7 +4,7 @@ import java.lang.reflect.Member;
 
 
 public interface HookHelperInterface {
-	
-	public abstract void hookMethod(Member method, MethodHookCallBack callback);
+
+    public abstract void hookMethod(Member method, MethodHookCallBack callback);
 
 }

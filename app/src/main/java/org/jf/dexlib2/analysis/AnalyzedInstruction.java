@@ -31,50 +31,56 @@
 
 package org.jf.dexlib2.analysis;
 
-import org.jf.dexlib2.iface.instruction.*;
+import org.jf.dexlib2.iface.instruction.FiveRegisterInstruction;
+import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.instruction.OneRegisterInstruction;
+import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
+import org.jf.dexlib2.iface.instruction.RegisterRangeInstruction;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.util.ExceptionWithContext;
 
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 import javax.annotation.Nonnull;
-import java.util.*;
 
 public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
     /**
-     * The actual instruction
-     */
-    protected Instruction instruction;
-
-    /**
-     * The index of the instruction, where the first instruction in the method is at index 0, and so on
+     * The index of the instruction, where the first instruction in the method is at index 0, and so
+     * on
      */
     protected final int instructionIndex;
-
     /**
      * Instructions that can pass on execution to this one during normal execution
      */
     protected final TreeSet<AnalyzedInstruction> predecessors = new TreeSet<AnalyzedInstruction>();
-
     /**
      * Instructions that can execution could pass on to next during normal execution
      */
     protected final LinkedList<AnalyzedInstruction> successors = new LinkedList<AnalyzedInstruction>();
-
     /**
      * This contains the register types *before* the instruction has executed
      */
     protected final RegisterType[] preRegisterMap;
-
     /**
      * This contains the register types *after* the instruction has executed
      */
     protected final RegisterType[] postRegisterMap;
-
     /**
-     * When deodexing, we might need to deodex this instruction multiple times, when we merge in new register
-     * information. When this happens, we need to restore the original (odexed) instruction, so we can deodex it again
+     * When deodexing, we might need to deodex this instruction multiple times, when we merge in new
+     * register information. When this happens, we need to restore the original (odexed)
+     * instruction, so we can deodex it again
      */
     protected final Instruction originalInstruction;
+    /**
+     * The actual instruction
+     */
+    protected Instruction instruction;
 
     public AnalyzedInstruction(Instruction instruction, int instructionIndex, int registerCount) {
         this.instruction = instruction;
@@ -83,7 +89,7 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
         this.postRegisterMap = new RegisterType[registerCount];
         this.preRegisterMap = new RegisterType[registerCount];
         RegisterType unknown = RegisterType.getRegisterType(RegisterType.UNKNOWN, null);
-        for (int i=0; i<registerCount; i++) {
+        for (int i = 0; i < registerCount; i++) {
             preRegisterMap[i] = unknown;
             postRegisterMap[i] = unknown;
         }
@@ -136,15 +142,17 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
     }
 
     /**
-     * Is this instruction a "beginning instruction". A beginning instruction is defined to be an instruction
-     * that can be the first successfully executed instruction in the method. The first instruction is always a
-     * beginning instruction. If the first instruction can throw an exception, and is covered by a try block, then
-     * the first instruction of any exception handler for that try block is also a beginning instruction. And likewise,
-     * if any of those instructions can throw an exception and are covered by try blocks, the first instruction of the
-     * corresponding exception handler is a beginning instruction, etc.
+     * Is this instruction a "beginning instruction". A beginning instruction is defined to be an
+     * instruction that can be the first successfully executed instruction in the method. The first
+     * instruction is always a beginning instruction. If the first instruction can throw an
+     * exception, and is covered by a try block, then the first instruction of any exception handler
+     * for that try block is also a beginning instruction. And likewise, if any of those
+     * instructions can throw an exception and are covered by try blocks, the first instruction of
+     * the corresponding exception handler is a beginning instruction, etc.
      *
-     * To determine this, we simply check if the first predecessor is the fake "StartOfMethod" instruction, which has
-     * an instruction index of -1.
+     * To determine this, we simply check if the first predecessor is the fake "StartOfMethod"
+     * instruction, which has an instruction index of -1.
+     *
      * @return a boolean value indicating whether this instruction is a beginning instruction
      */
     public boolean isBeginningInstruction() {
@@ -192,14 +200,17 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
     }
 
     /**
-     * Iterates over the predecessors of this instruction, and merges all the post-instruction register types for the
-     * given register. Any dead, unreachable, or odexed predecessor is ignored
+     * Iterates over the predecessors of this instruction, and merges all the post-instruction
+     * register types for the given register. Any dead, unreachable, or odexed predecessor is
+     * ignored
+     *
      * @param registerNumber the register number
-     * @return The register type resulting from merging the post-instruction register types from all predecessors
+     * @return The register type resulting from merging the post-instruction register types from all
+     * predecessors
      */
     protected RegisterType mergePreRegisterTypeFromPredecessors(int registerNumber) {
         RegisterType mergedRegisterType = null;
-        for (AnalyzedInstruction predecessor: predecessors) {
+        for (AnalyzedInstruction predecessor : predecessors) {
             RegisterType predecessorRegisterType = predecessor.postRegisterMap[registerNumber];
             assert predecessorRegisterType != null;
             mergedRegisterType = predecessorRegisterType.merge(mergedRegisterType);
@@ -213,18 +224,18 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
       * @param registerType The "post-instruction" register type
       * @returns true if the given register type is different than the existing post-instruction register type
       */
-     protected boolean setPostRegisterType(int registerNumber, RegisterType registerType) {
-         assert registerNumber >= 0 && registerNumber < postRegisterMap.length;
-         assert registerType != null;
+    protected boolean setPostRegisterType(int registerNumber, RegisterType registerType) {
+        assert registerNumber >= 0 && registerNumber < postRegisterMap.length;
+        assert registerType != null;
 
-         RegisterType oldRegisterType = postRegisterMap[registerNumber];
-         if (oldRegisterType.equals(registerType)) {
-             return false;
-         }
+        RegisterType oldRegisterType = postRegisterMap[registerNumber];
+        if (oldRegisterType.equals(registerType)) {
+            return false;
+        }
 
-         postRegisterMap[registerNumber] = registerType;
-         return true;
-     }
+        postRegisterMap[registerNumber] = registerType;
+        return true;
+    }
 
 
     protected boolean isInvokeInit() {
@@ -232,11 +243,11 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
             return false;
         }
 
-        ReferenceInstruction instruction = (ReferenceInstruction)this.instruction;
+        ReferenceInstruction instruction = (ReferenceInstruction) this.instruction;
 
         Reference reference = instruction.getReference();
         if (reference instanceof MethodReference) {
-            return ((MethodReference)reference).getName().equals("<init>");
+            return ((MethodReference) reference).getName().equals("<init>");
         }
 
         return false;
@@ -259,10 +270,10 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
         if (isInvokeInit()) {
             int destinationRegister;
             if (instruction instanceof FiveRegisterInstruction) {
-                destinationRegister = ((FiveRegisterInstruction)instruction).getRegisterC();
+                destinationRegister = ((FiveRegisterInstruction) instruction).getRegisterC();
             } else {
                 assert instruction instanceof RegisterRangeInstruction;
-                RegisterRangeInstruction rangeInstruction = (RegisterRangeInstruction)instruction;
+                RegisterRangeInstruction rangeInstruction = (RegisterRangeInstruction) instruction;
                 assert rangeInstruction.getRegisterCount() > 0;
                 destinationRegister = rangeInstruction.getStartRegister();
             }
@@ -272,7 +283,7 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
             }
             RegisterType preInstructionDestRegisterType = getPreInstructionRegisterType(registerNumber);
             if (preInstructionDestRegisterType.category != RegisterType.UNINIT_REF &&
-                preInstructionDestRegisterType.category != RegisterType.UNINIT_THIS) {
+                    preInstructionDestRegisterType.category != RegisterType.UNINIT_THIS) {
 
                 return false;
             }
@@ -302,7 +313,7 @@ public class AnalyzedInstruction implements Comparable<AnalyzedInstruction> {
             throw new ExceptionWithContext("Cannot call getDestinationRegister() for an instruction that doesn't " +
                     "store a value");
         }
-        return ((OneRegisterInstruction)instruction).getRegisterA();
+        return ((OneRegisterInstruction) instruction).getRegisterA();
     }
 
     public int getRegisterCount() {

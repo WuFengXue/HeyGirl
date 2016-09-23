@@ -34,20 +34,21 @@ package org.jf.dexlib2.analysis.util;
 import org.jf.dexlib2.analysis.TypeProto;
 import org.jf.dexlib2.analysis.UnresolvedClassException;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public class TypeProtoUtils {
     /**
-     * Get the chain of superclasses of the given class. The first element will be the immediate superclass followed by
-     * it's superclass, etc. up to java.lang.Object.
+     * Get the chain of superclasses of the given class. The first element will be the immediate
+     * superclass followed by it's superclass, etc. up to java.lang.Object.
      *
      * Returns an empty iterable if called on java.lang.Object or a primitive.
      *
-     * If any class in the superclass chain can't be resolved, the iterable will return Ujava/lang/Object; to represent
-     * the unknown class.
+     * If any class in the superclass chain can't be resolved, the iterable will return
+     * Ujava/lang/Object; to represent the unknown class.
      *
      * @return An iterable containing the superclasses of this class.
      */
@@ -55,15 +56,19 @@ public class TypeProtoUtils {
     public static Iterable<TypeProto> getSuperclassChain(@Nonnull final TypeProto typeProto) {
         return new Iterable<TypeProto>() {
 
-            @Override public Iterator<TypeProto> iterator() {
+            @Override
+            public Iterator<TypeProto> iterator() {
                 return new Iterator<TypeProto>() {
-                    @Nullable private TypeProto type = getSuperclassAsTypeProto(typeProto);
+                    @Nullable
+                    private TypeProto type = getSuperclassAsTypeProto(typeProto);
 
-                    @Override public boolean hasNext() {
+                    @Override
+                    public boolean hasNext() {
                         return type != null;
                     }
 
-                    @Override public TypeProto next() {
+                    @Override
+                    public TypeProto next() {
                         TypeProto type = this.type;
                         if (type == null) {
                             throw new NoSuchElementException();
@@ -73,7 +78,8 @@ public class TypeProtoUtils {
                         return type;
                     }
 
-                    @Override public void remove() {
+                    @Override
+                    public void remove() {
                         throw new UnsupportedOperationException();
                     }
                 };

@@ -32,11 +32,15 @@
 package org.jf.util;
 
 /**
- * SparseIntArrays map integers to integers.  Unlike a normal array of integers,
- * there can be gaps in the indices.  It is intended to be more efficient
- * than using a HashMap to map Integers to Integers.
+ * SparseIntArrays map integers to integers.  Unlike a normal array of integers, there can be gaps
+ * in the indices.  It is intended to be more efficient than using a HashMap to map Integers to
+ * Integers.
  */
 public class SparseIntArray {
+    private int[] mKeys;
+    private int[] mValues;
+    private int mSize;
+
     /**
      * Creates a new SparseIntArray containing no mappings.
      */
@@ -45,9 +49,8 @@ public class SparseIntArray {
     }
 
     /**
-     * Creates a new SparseIntArray containing no mappings that will not
-     * require any additional memory allocation to store the specified
-     * number of mappings.
+     * Creates a new SparseIntArray containing no mappings that will not require any additional
+     * memory allocation to store the specified number of mappings.
      */
     public SparseIntArray(int initialCapacity) {
         mKeys = new int[initialCapacity];
@@ -55,17 +58,37 @@ public class SparseIntArray {
         mSize = 0;
     }
 
+    private static int binarySearch(int[] a, int start, int len, int key) {
+        int high = start + len, low = start - 1, guess;
+
+        while (high - low > 1) {
+            guess = (high + low) / 2;
+
+            if (a[guess] < key)
+                low = guess;
+            else
+                high = guess;
+        }
+
+        if (high == start + len)
+            return ~(start + len);
+        else if (a[high] == key)
+            return high;
+        else
+            return ~high;
+    }
+
     /**
-     * Gets the int mapped from the specified key, or <code>0</code>
-     * if no such mapping has been made.
+     * Gets the int mapped from the specified key, or <code>0</code> if no such mapping has been
+     * made.
      */
     public int get(int key) {
         return get(key, 0);
     }
 
     /**
-     * Gets the int mapped from the specified key, or the specified value
-     * if no such mapping has been made.
+     * Gets the int mapped from the specified key, or the specified value if no such mapping has
+     * been made.
      */
     public int get(int key, int valueIfKeyNotFound) {
         int i = binarySearch(mKeys, 0, mSize, key);
@@ -78,8 +101,8 @@ public class SparseIntArray {
     }
 
     /**
-     * Gets the int mapped from the specified key, or if not present, the
-     * closest key that is less than the specified key.
+     * Gets the int mapped from the specified key, or if not present, the closest key that is less
+     * than the specified key.
      */
     public int getClosestSmaller(int key) {
         int i = binarySearch(mKeys, 0, mSize, key);
@@ -116,9 +139,8 @@ public class SparseIntArray {
     }
 
     /**
-     * Adds a mapping from the specified key to the specified value,
-     * replacing the previous mapping from the specified key if there
-     * was one.
+     * Adds a mapping from the specified key to the specified value, replacing the previous mapping
+     * from the specified key if there was one.
      */
     public void put(int key, int value) {
         int i = binarySearch(mKeys, 0, mSize, key);
@@ -155,47 +177,41 @@ public class SparseIntArray {
     }
 
     /**
-     * Returns the number of key-value mappings that this SparseIntArray
-     * currently stores.
+     * Returns the number of key-value mappings that this SparseIntArray currently stores.
      */
     public int size() {
         return mSize;
     }
 
     /**
-     * Given an index in the range <code>0...size()-1</code>, returns
-     * the key from the <code>index</code>th key-value mapping that this
-     * SparseIntArray stores.
+     * Given an index in the range <code>0...size()-1</code>, returns the key from the
+     * <code>index</code>th key-value mapping that this SparseIntArray stores.
      */
     public int keyAt(int index) {
         return mKeys[index];
     }
 
     /**
-     * Given an index in the range <code>0...size()-1</code>, returns
-     * the value from the <code>index</code>th key-value mapping that this
-     * SparseIntArray stores.
+     * Given an index in the range <code>0...size()-1</code>, returns the value from the
+     * <code>index</code>th key-value mapping that this SparseIntArray stores.
      */
     public int valueAt(int index) {
         return mValues[index];
     }
 
     /**
-     * Returns the index for which {@link #keyAt} would return the
-     * specified key, or a negative number if the specified
-     * key is not mapped.
+     * Returns the index for which {@link #keyAt} would return the specified key, or a negative
+     * number if the specified key is not mapped.
      */
     public int indexOfKey(int key) {
         return binarySearch(mKeys, 0, mSize, key);
     }
 
     /**
-     * Returns an index for which {@link #valueAt} would return the
-     * specified key, or a negative number if no keys map to the
-     * specified value.
-     * Beware that this is a linear search, unlike lookups by key,
-     * and that multiple keys can map to the same value and this will
-     * find only one of them.
+     * Returns an index for which {@link #valueAt} would return the specified key, or a negative
+     * number if no keys map to the specified value. Beware that this is a linear search, unlike
+     * lookups by key, and that multiple keys can map to the same value and this will find only one
+     * of them.
      */
     public int indexOfValue(int value) {
         for (int i = 0; i < mSize; i++)
@@ -213,8 +229,8 @@ public class SparseIntArray {
     }
 
     /**
-     * Puts a key/value pair into the array, optimizing for the case where
-     * the key is greater than all existing keys in the array.
+     * Puts a key/value pair into the array, optimizing for the case where the key is greater than
+     * all existing keys in the array.
      */
     public void append(int key, int value) {
         if (mSize != 0 && key <= mKeys[mSize - 1]) {
@@ -241,28 +257,4 @@ public class SparseIntArray {
         mValues[pos] = value;
         mSize = pos + 1;
     }
-
-    private static int binarySearch(int[] a, int start, int len, int key) {
-        int high = start + len, low = start - 1, guess;
-
-        while (high - low > 1) {
-            guess = (high + low) / 2;
-
-            if (a[guess] < key)
-                low = guess;
-            else
-                high = guess;
-        }
-
-        if (high == start + len)
-            return ~(start + len);
-        else if (a[high] == key)
-            return high;
-        else
-            return ~high;
-    }
-
-    private int[] mKeys;
-    private int[] mValues;
-    private int mSize;
 }

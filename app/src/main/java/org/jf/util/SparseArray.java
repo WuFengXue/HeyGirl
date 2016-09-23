@@ -36,13 +36,15 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * SparseArrays map integers to Objects.  Unlike a normal array of Objects,
- * there can be gaps in the indices.  It is intended to be more efficient
- * than using a HashMap to map Integers to Objects.
+ * SparseArrays map integers to Objects.  Unlike a normal array of Objects, there can be gaps in the
+ * indices.  It is intended to be more efficient than using a HashMap to map Integers to Objects.
  */
 public class SparseArray<E> {
     private static final Object DELETED = new Object();
     private boolean mGarbage = false;
+    private int[] mKeys;
+    private Object[] mValues;
+    private int mSize;
 
     /**
      * Creates a new SparseArray containing no mappings.
@@ -52,9 +54,8 @@ public class SparseArray<E> {
     }
 
     /**
-     * Creates a new SparseArray containing no mappings that will not
-     * require any additional memory allocation to store the specified
-     * number of mappings.
+     * Creates a new SparseArray containing no mappings that will not require any additional memory
+     * allocation to store the specified number of mappings.
      */
     public SparseArray(int initialCapacity) {
         mKeys = new int[initialCapacity];
@@ -62,17 +63,37 @@ public class SparseArray<E> {
         mSize = 0;
     }
 
+    private static int binarySearch(int[] a, int start, int len, int key) {
+        int high = start + len, low = start - 1, guess;
+
+        while (high - low > 1) {
+            guess = (high + low) / 2;
+
+            if (a[guess] < key)
+                low = guess;
+            else
+                high = guess;
+        }
+
+        if (high == start + len)
+            return ~(start + len);
+        else if (a[high] == key)
+            return high;
+        else
+            return ~high;
+    }
+
     /**
-     * Gets the Object mapped from the specified key, or <code>null</code>
-     * if no such mapping has been made.
+     * Gets the Object mapped from the specified key, or <code>null</code> if no such mapping has
+     * been made.
      */
     public E get(int key) {
         return get(key, null);
     }
 
     /**
-     * Gets the Object mapped from the specified key, or the specified Object
-     * if no such mapping has been made.
+     * Gets the Object mapped from the specified key, or the specified Object if no such mapping has
+     * been made.
      */
     public E get(int key, E valueIfKeyNotFound) {
         int i = binarySearch(mKeys, 0, mSize, key);
@@ -133,9 +154,8 @@ public class SparseArray<E> {
     }
 
     /**
-     * Adds a mapping from the specified key to the specified value,
-     * replacing the previous mapping from the specified key if there
-     * was one.
+     * Adds a mapping from the specified key to the specified value, replacing the previous mapping
+     * from the specified key if there was one.
      */
     public void put(int key, E value) {
         int i = binarySearch(mKeys, 0, mSize, key);
@@ -185,8 +205,7 @@ public class SparseArray<E> {
     }
 
     /**
-     * Returns the number of key-value mappings that this SparseArray
-     * currently stores.
+     * Returns the number of key-value mappings that this SparseArray currently stores.
      */
     public int size() {
         if (mGarbage) {
@@ -197,9 +216,8 @@ public class SparseArray<E> {
     }
 
     /**
-     * Given an index in the range <code>0...size()-1</code>, returns
-     * the key from the <code>index</code>th key-value mapping that this
-     * SparseArray stores.
+     * Given an index in the range <code>0...size()-1</code>, returns the key from the
+     * <code>index</code>th key-value mapping that this SparseArray stores.
      */
     public int keyAt(int index) {
         if (mGarbage) {
@@ -210,9 +228,8 @@ public class SparseArray<E> {
     }
 
     /**
-     * Given an index in the range <code>0...size()-1</code>, returns
-     * the value from the <code>index</code>th key-value mapping that this
-     * SparseArray stores.
+     * Given an index in the range <code>0...size()-1</code>, returns the value from the
+     * <code>index</code>th key-value mapping that this SparseArray stores.
      */
     public E valueAt(int index) {
         if (mGarbage) {
@@ -223,9 +240,8 @@ public class SparseArray<E> {
     }
 
     /**
-     * Given an index in the range <code>0...size()-1</code>, sets a new
-     * value for the <code>index</code>th key-value mapping that this
-     * SparseArray stores.
+     * Given an index in the range <code>0...size()-1</code>, sets a new value for the
+     * <code>index</code>th key-value mapping that this SparseArray stores.
      */
     public void setValueAt(int index, E value) {
         if (mGarbage) {
@@ -236,9 +252,8 @@ public class SparseArray<E> {
     }
 
     /**
-     * Returns the index for which {@link #keyAt} would return the
-     * specified key, or a negative number if the specified
-     * key is not mapped.
+     * Returns the index for which {@link #keyAt} would return the specified key, or a negative
+     * number if the specified key is not mapped.
      */
     public int indexOfKey(int key) {
         if (mGarbage) {
@@ -249,12 +264,10 @@ public class SparseArray<E> {
     }
 
     /**
-     * Returns an index for which {@link #valueAt} would return the
-     * specified key, or a negative number if no keys map to the
-     * specified value.
-     * Beware that this is a linear search, unlike lookups by key,
-     * and that multiple keys can map to the same value and this will
-     * find only one of them.
+     * Returns an index for which {@link #valueAt} would return the specified key, or a negative
+     * number if no keys map to the specified value. Beware that this is a linear search, unlike
+     * lookups by key, and that multiple keys can map to the same value and this will find only one
+     * of them.
      */
     public int indexOfValue(E value) {
         if (mGarbage) {
@@ -284,8 +297,8 @@ public class SparseArray<E> {
     }
 
     /**
-     * Puts a key/value pair into the array, optimizing for the case where
-     * the key is greater than all existing keys in the array.
+     * Puts a key/value pair into the array, optimizing for the case where the key is greater than
+     * all existing keys in the array.
      */
     public void append(int key, E value) {
         if (mSize != 0 && key <= mKeys[mSize - 1]) {
@@ -318,8 +331,9 @@ public class SparseArray<E> {
     }
 
     /**
-     * Increases the size of the underlying storage if needed, to ensure that it can
-     * hold the specified number of items without having to allocate additional memory
+     * Increases the size of the underlying storage if needed, to ensure that it can hold the
+     * specified number of items without having to allocate additional memory
+     *
      * @param capacity the number of items
      */
     public void ensureCapacity(int capacity) {
@@ -339,35 +353,11 @@ public class SparseArray<E> {
         }
     }
 
-    private static int binarySearch(int[] a, int start, int len, int key) {
-        int high = start + len, low = start - 1, guess;
-
-        while (high - low > 1) {
-            guess = (high + low) / 2;
-
-            if (a[guess] < key)
-                low = guess;
-            else
-                high = guess;
-        }
-
-        if (high == start + len)
-            return ~(start + len);
-        else if (a[high] == key)
-            return high;
-        else
-            return ~high;
-    }
-
     /**
-     * @return a read-only list of the values in this SparseArray which are in ascending order, based on their
-     * associated key
+     * @return a read-only list of the values in this SparseArray which are in ascending order,
+     * based on their associated key
      */
     public List<E> getValues() {
-        return Collections.unmodifiableList(Arrays.asList((E[])mValues));
+        return Collections.unmodifiableList(Arrays.asList((E[]) mValues));
     }
-
-    private int[] mKeys;
-    private Object[] mValues;
-    private int mSize;
 }

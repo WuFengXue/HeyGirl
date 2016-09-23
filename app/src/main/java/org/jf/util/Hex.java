@@ -104,9 +104,8 @@ public final class Hex {
     }
 
     /**
-     * Formats an <code>int</code> as either a 2-byte unsigned hex value
-     * (if the value is small enough) or a 4-byte unsigned hex value (if
-     * not).
+     * Formats an <code>int</code> as either a 2-byte unsigned hex value (if the value is small
+     * enough) or a 4-byte unsigned hex value (if not).
      *
      * @param v value to format
      * @return non-null; formatted form
@@ -245,17 +244,16 @@ public final class Hex {
     }
 
     /**
-     * Formats a hex dump of a portion of a <code>byte[]</code>. The result
-     * is always newline-terminated, unless the passed-in length was zero,
-     * in which case the result is always the empty string (<code>""</code>).
+     * Formats a hex dump of a portion of a <code>byte[]</code>. The result is always
+     * newline-terminated, unless the passed-in length was zero, in which case the result is always
+     * the empty string (<code>""</code>).
      *
-     * @param arr non-null; array to format
-     * @param offset &gt;= 0; offset to the part to dump
-     * @param length &gt;= 0; number of bytes to dump
-     * @param outOffset &gt;= 0; first output offset to print
-     * @param bpl &gt;= 0; number of bytes of output per line
-     * @param addressLength {2,4,6,8}; number of characters for each address
-     * header
+     * @param arr           non-null; array to format
+     * @param offset        &gt;= 0; offset to the part to dump
+     * @param length        &gt;= 0; number of bytes to dump
+     * @param outOffset     &gt;= 0; first output offset to print
+     * @param bpl           &gt;= 0; number of bytes of output per line
+     * @param addressLength {2,4,6,8}; number of characters for each address header
      * @return non-null; a string of the dump
      */
     public static String dump(byte[] arr, int offset, int length,
@@ -265,8 +263,8 @@ public final class Hex {
         // twos-complement math trick: ((x < 0) || (y < 0)) <=> ((x|y) < 0)
         if (((offset | length | end) < 0) || (end > arr.length)) {
             throw new IndexOutOfBoundsException("arr.length " +
-                                                arr.length + "; " +
-                                                offset + "..!" + end);
+                    arr.length + "; " +
+                    offset + "..!" + end);
         }
 
         if (outOffset < 0) {
@@ -285,10 +283,18 @@ public final class Hex {
             if (col == 0) {
                 String astr;
                 switch (addressLength) {
-                    case 2:  astr = Hex.u1(outOffset); break;
-                    case 4:  astr = Hex.u2(outOffset); break;
-                    case 6:  astr = Hex.u3(outOffset); break;
-                    default: astr = Hex.u4(outOffset); break;
+                    case 2:
+                        astr = Hex.u1(outOffset);
+                        break;
+                    case 4:
+                        astr = Hex.u2(outOffset);
+                        break;
+                    case 6:
+                        astr = Hex.u3(outOffset);
+                        break;
+                    default:
+                        astr = Hex.u4(outOffset);
+                        break;
                 }
                 sb.append(astr);
                 sb.append(": ");

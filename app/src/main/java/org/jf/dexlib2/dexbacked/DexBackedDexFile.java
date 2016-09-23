@@ -31,13 +31,9 @@
 
 package org.jf.dexlib2.dexbacked;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Set;
+import com.google.common.io.ByteStreams;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import com.android.reverse.util.Logger;
 
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.raw.ClassDefItem;
@@ -51,8 +47,13 @@ import org.jf.dexlib2.dexbacked.util.FixedSizeSet;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.util.ExceptionWithContext;
 
-import com.android.reverse.util.Logger;
-import com.google.common.io.ByteStreams;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Set;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     private final Opcodes opcodes;
@@ -67,35 +68,28 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     private final int fieldStartOffset;
     private final int methodCount;
     private final int methodStartOffset;
-    private int classCount;
     private final int classStartOffset;
-    
+    private int classCount;
     private MemoryDexFileItemPointer pointer;
     private DexFileDataType type;
     private MemoryReader reader;
-    
-    public enum DexFileDataType{
-    	FILETYPE,
-    	MEMORYTYPE
-    }
-    
-    
-    public DexBackedDexFile(Opcodes opcodes,MemoryDexFileItemPointer pointer, MemoryReader reader){
-    	super(reader,pointer.getBaseAddr());
-    	this.pointer = pointer;
-    	this.opcodes = opcodes;
-    	this.reader = reader;
-    	this.type = DexFileDataType.MEMORYTYPE;
+
+    public DexBackedDexFile(Opcodes opcodes, MemoryDexFileItemPointer pointer, MemoryReader reader) {
+        super(reader, pointer.getBaseAddr());
+        this.pointer = pointer;
+        this.opcodes = opcodes;
+        this.reader = reader;
+        this.type = DexFileDataType.MEMORYTYPE;
         stringCount = 0;
-        stringStartOffset = this.pointer.getpStringIds()-this.pointer.getBaseAddr();
+        stringStartOffset = this.pointer.getpStringIds() - this.pointer.getBaseAddr();
         typeCount = 0;
         typeStartOffset = this.pointer.getpTypeIds() - this.pointer.getBaseAddr();
         protoCount = 0;
         protoStartOffset = this.pointer.getpProtoIds() - this.pointer.getBaseAddr();
         fieldCount = 0;
-        fieldStartOffset = this.pointer.getpFieldIds()-this.pointer.getBaseAddr();
+        fieldStartOffset = this.pointer.getpFieldIds() - this.pointer.getBaseAddr();
         methodCount = 0;
-        methodStartOffset = this.pointer.getpMethodIds()- this.pointer.getBaseAddr();
+        methodStartOffset = this.pointer.getpMethodIds() - this.pointer.getBaseAddr();
         classCount = this.pointer.getClassCount();
         classStartOffset = this.pointer.getpClassDefs() - this.pointer.getBaseAddr();
         Logger.log("the dexfile header item info start-->>>>>>>>>>");
@@ -107,8 +101,9 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         Logger.log("the classStartOffset =" + classStartOffset);
         Logger.log("the classCount =" + classCount);
         Logger.log("the dexfile header item info end<<<<<<<<<<<--");
-        
+
     }
+
 
     private DexBackedDexFile(Opcodes opcodes, @Nonnull byte[] buf, int offset, boolean verifyMagic) {
         super(buf);
@@ -166,35 +161,10 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         return new DexBackedDexFile(opcodes, buf, 0, false);
     }
 
-    public Opcodes getOpcodes() {
-        return opcodes;
-    }
-
-    public boolean isOdexFile() {
-        return false;
-    }
-
-    @Nonnull
-    @Override
-    public Set<? extends DexBackedClassDef> getClasses() {
-    	return new FixedSizeSet<DexBackedClassDef>() {
-            @Nonnull
-            @Override
-            public DexBackedClassDef readItem(int index) {
-                return new DexBackedClassDef(DexBackedDexFile.this, getClassDefItemOffset(index));
-            }
-
-            @Override
-            public int size() {
-                return classCount;
-            }
-        };
-    }
-
     private static void verifyMagicAndByteOrder(@Nonnull byte[] buf, int offset) {
         if (!HeaderItem.verifyMagic(buf, offset)) {
             StringBuilder sb = new StringBuilder("Invalid magic value:");
-            for (int i=0; i<8; i++) {
+            for (int i = 0; i < 8; i++) {
                 sb.append(String.format(" %02x", buf[i]));
             }
             throw new NotADexFile(sb.toString());
@@ -210,66 +180,91 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
         }
     }
 
+    public Opcodes getOpcodes() {
+        return opcodes;
+    }
+
+    public boolean isOdexFile() {
+        return false;
+    }
+
+    @Nonnull
+    @Override
+    public Set<? extends DexBackedClassDef> getClasses() {
+        return new FixedSizeSet<DexBackedClassDef>() {
+            @Nonnull
+            @Override
+            public DexBackedClassDef readItem(int index) {
+                return new DexBackedClassDef(DexBackedDexFile.this, getClassDefItemOffset(index));
+            }
+
+            @Override
+            public int size() {
+                return classCount;
+            }
+        };
+    }
+
     public int getStringIdItemOffset(int stringIndex) {
-    	if(this.type == DexFileDataType.MEMORYTYPE){
-    		return stringStartOffset + stringIndex*StringIdItem.ITEM_SIZE;
-    	}
+        if (this.type == DexFileDataType.MEMORYTYPE) {
+            return stringStartOffset + stringIndex * StringIdItem.ITEM_SIZE;
+        }
         if (stringIndex < 0 || stringIndex >= stringCount) {
             throw new InvalidItemIndex(stringIndex, "String index out of bounds: %d", stringIndex);
         }
-        return stringStartOffset + stringIndex*StringIdItem.ITEM_SIZE;
+        return stringStartOffset + stringIndex * StringIdItem.ITEM_SIZE;
     }
 
     public int getTypeIdItemOffset(int typeIndex) {
-    	
-    	if(this.type == DexFileDataType.MEMORYTYPE){
-    		return typeStartOffset + typeIndex*TypeIdItem.ITEM_SIZE;
-    	}
+
+        if (this.type == DexFileDataType.MEMORYTYPE) {
+            return typeStartOffset + typeIndex * TypeIdItem.ITEM_SIZE;
+        }
         if (typeIndex < 0 || typeIndex >= typeCount) {
             throw new InvalidItemIndex(typeIndex, "Type index out of bounds: %d", typeIndex);
         }
-        return typeStartOffset + typeIndex*TypeIdItem.ITEM_SIZE;
+        return typeStartOffset + typeIndex * TypeIdItem.ITEM_SIZE;
     }
 
     public int getFieldIdItemOffset(int fieldIndex) {
-    	
-    	if(this.type == DexFileDataType.MEMORYTYPE){
-    		return fieldStartOffset + fieldIndex*FieldIdItem.ITEM_SIZE;
-    	}
+
+        if (this.type == DexFileDataType.MEMORYTYPE) {
+            return fieldStartOffset + fieldIndex * FieldIdItem.ITEM_SIZE;
+        }
         if (fieldIndex < 0 || fieldIndex >= fieldCount) {
             throw new InvalidItemIndex(fieldIndex, "Field index out of bounds: %d", fieldIndex);
         }
-        return fieldStartOffset + fieldIndex*FieldIdItem.ITEM_SIZE;
+        return fieldStartOffset + fieldIndex * FieldIdItem.ITEM_SIZE;
     }
 
     public int getMethodIdItemOffset(int methodIndex) {
-    	if(this.type == DexFileDataType.MEMORYTYPE){
-    		return methodStartOffset + methodIndex*MethodIdItem.ITEM_SIZE;
-    	}
+        if (this.type == DexFileDataType.MEMORYTYPE) {
+            return methodStartOffset + methodIndex * MethodIdItem.ITEM_SIZE;
+        }
         if (methodIndex < 0 || methodIndex >= methodCount) {
             throw new InvalidItemIndex(methodIndex, "Method index out of bounds: %d", methodIndex);
         }
-        return methodStartOffset + methodIndex*MethodIdItem.ITEM_SIZE;
+        return methodStartOffset + methodIndex * MethodIdItem.ITEM_SIZE;
     }
 
     public int getProtoIdItemOffset(int protoIndex) {
-    	if(this.type == DexFileDataType.MEMORYTYPE){
-    		return protoStartOffset + protoIndex*ProtoIdItem.ITEM_SIZE;
-    	}
+        if (this.type == DexFileDataType.MEMORYTYPE) {
+            return protoStartOffset + protoIndex * ProtoIdItem.ITEM_SIZE;
+        }
         if (protoIndex < 0 || protoIndex >= protoCount) {
             throw new InvalidItemIndex(protoIndex, "Proto index out of bounds: %d", protoIndex);
         }
-        return protoStartOffset + protoIndex*ProtoIdItem.ITEM_SIZE;
+        return protoStartOffset + protoIndex * ProtoIdItem.ITEM_SIZE;
     }
 
     public int getClassDefItemOffset(int classIndex) {
-    	if(this.type == DexFileDataType.MEMORYTYPE){
-    		return classStartOffset + classIndex*ClassDefItem.ITEM_SIZE;
-    	}
+        if (this.type == DexFileDataType.MEMORYTYPE) {
+            return classStartOffset + classIndex * ClassDefItem.ITEM_SIZE;
+        }
         if (classIndex < 0 || classIndex >= classCount) {
             throw new InvalidItemIndex(classIndex, "Class index out of bounds: %d", classIndex);
         }
-        return classStartOffset + classIndex*ClassDefItem.ITEM_SIZE;
+        return classStartOffset + classIndex * ClassDefItem.ITEM_SIZE;
     }
 
     public int getClassCount() {
@@ -312,6 +307,11 @@ public class DexBackedDexFile extends BaseDexBuffer implements DexFile {
     @Nonnull
     public DexReader readerAt(int offset) {
         return new DexReader(this, offset);
+    }
+
+    public enum DexFileDataType {
+        FILETYPE,
+        MEMORYTYPE
     }
 
     public static class NotADexFile extends RuntimeException {

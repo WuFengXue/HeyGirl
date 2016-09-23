@@ -32,6 +32,7 @@
 package org.jf.dexlib2.dexbacked.reference;
 
 import com.google.common.collect.ImmutableList;
+
 import org.jf.dexlib2.base.reference.BaseMethodReference;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.raw.MethodIdItem;
@@ -39,11 +40,13 @@ import org.jf.dexlib2.dexbacked.raw.ProtoIdItem;
 import org.jf.dexlib2.dexbacked.raw.TypeListItem;
 import org.jf.dexlib2.dexbacked.util.FixedSizeList;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 public class DexBackedMethodReference extends BaseMethodReference {
-    @Nonnull public final DexBackedDexFile dexFile;
+    @Nonnull
+    public final DexBackedDexFile dexFile;
     public final int methodIdItemOffset;
     private int protoIdItemOffset;
 
@@ -76,9 +79,13 @@ public class DexBackedMethodReference extends BaseMethodReference {
                 @Nonnull
                 @Override
                 public String readItem(final int index) {
-                    return dexFile.getType(dexFile.readUshort(paramListStart + 2*index));
+                    return dexFile.getType(dexFile.readUshort(paramListStart + 2 * index));
                 }
-                @Override public int size() { return parameterCount; }
+
+                @Override
+                public int size() {
+                    return parameterCount;
+                }
             };
         }
         return ImmutableList.of();

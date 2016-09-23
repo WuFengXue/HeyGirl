@@ -33,6 +33,7 @@ package org.jf.dexlib2.base.value;
 
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
+
 import org.jf.dexlib2.ValueType;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.iface.value.ShortEncodedValue;
@@ -49,7 +50,7 @@ public abstract class BaseShortEncodedValue implements ShortEncodedValue {
     @Override
     public boolean equals(@Nullable Object o) {
         if (o instanceof ShortEncodedValue) {
-            return getValue() == ((ShortEncodedValue)o).getValue();
+            return getValue() == ((ShortEncodedValue) o).getValue();
         }
         return false;
     }
@@ -58,8 +59,10 @@ public abstract class BaseShortEncodedValue implements ShortEncodedValue {
     public int compareTo(@Nonnull EncodedValue o) {
         int res = Ints.compare(getValueType(), o.getValueType());
         if (res != 0) return res;
-        return Shorts.compare(getValue(), ((ShortEncodedValue)o).getValue());
+        return Shorts.compare(getValue(), ((ShortEncodedValue) o).getValue());
     }
 
-    public int getValueType() { return ValueType.SHORT; }
+    public int getValueType() {
+        return ValueType.SHORT;
+    }
 }

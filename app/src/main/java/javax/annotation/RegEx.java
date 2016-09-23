@@ -11,9 +11,7 @@ import javax.annotation.meta.TypeQualifierValidator;
 import javax.annotation.meta.When;
 
 /**
- * This qualifier is used to denote String values that should be a Regular
- * expression.
- * 
+ * This qualifier is used to denote String values that should be a Regular expression.
  */
 @Documented
 @Syntax("RegEx")

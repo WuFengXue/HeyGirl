@@ -34,13 +34,15 @@ package org.jf.dexlib2.dexbacked.util;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexReader;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public abstract class VariableSizeLookaheadIterator<T> implements Iterator<T> {
-    @Nonnull private final DexReader reader;
+    @Nonnull
+    private final DexReader reader;
 
     private T cachedItem = null;
 
@@ -50,11 +52,13 @@ public abstract class VariableSizeLookaheadIterator<T> implements Iterator<T> {
     }
 
     /**
-     * Reads the next item from reader. If the end of the list has been reached, it should return null.
+     * Reads the next item from reader. If the end of the list has been reached, it should return
+     * null.
      *
      * @return The item that was read, or null if the end of the list has been reached.
      */
-    @Nullable protected abstract T readNextItem(@Nonnull DexReader reader);
+    @Nullable
+    protected abstract T readNextItem(@Nonnull DexReader reader);
 
     @Override
     public boolean hasNext() {
@@ -72,5 +76,8 @@ public abstract class VariableSizeLookaheadIterator<T> implements Iterator<T> {
         return ret;
     }
 
-    @Override public void remove() { throw new UnsupportedOperationException(); }
+    @Override
+    public void remove() {
+        throw new UnsupportedOperationException();
+    }
 }

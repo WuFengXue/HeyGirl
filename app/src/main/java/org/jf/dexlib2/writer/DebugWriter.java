@@ -34,14 +34,21 @@ package org.jf.dexlib2.writer;
 import org.jf.dexlib2.DebugItemType;
 import org.jf.util.ExceptionWithContext;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public class DebugWriter<StringKey extends CharSequence, TypeKey extends CharSequence> {
-    @Nonnull private final StringSection<StringKey, ?> stringSection;
-    @Nonnull private final TypeSection<StringKey, TypeKey, ?> typeSection;
-    @Nonnull private final DexDataWriter writer;
+    private static final int LINE_BASE = -4;
+    private static final int LINE_RANGE = 15;
+    private static final int FIRST_SPECIAL = 0x0a;
+    @Nonnull
+    private final StringSection<StringKey, ?> stringSection;
+    @Nonnull
+    private final TypeSection<StringKey, TypeKey, ?> typeSection;
+    @Nonnull
+    private final DexDataWriter writer;
     private int currentAddress;
     private int currentLine;
 
@@ -151,12 +158,8 @@ public class DebugWriter<StringKey extends CharSequence, TypeKey extends CharSeq
         }
     }
 
-    private static final int LINE_BASE     = -4;
-    private static final int LINE_RANGE    = 15;
-    private static final int FIRST_SPECIAL = 0x0a;
-
     private void writeSpecialOpcode(int lineDelta, int addressDelta) throws IOException {
-        writer.write((byte)(FIRST_SPECIAL + (addressDelta * LINE_RANGE) + (lineDelta - LINE_BASE)));
+        writer.write((byte) (FIRST_SPECIAL + (addressDelta * LINE_RANGE) + (lineDelta - LINE_BASE)));
         currentLine += lineDelta;
         currentAddress += addressDelta;
     }

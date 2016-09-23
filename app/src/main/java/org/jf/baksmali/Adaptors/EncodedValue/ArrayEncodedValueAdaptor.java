@@ -28,9 +28,9 @@
 
 package org.jf.baksmali.Adaptors.EncodedValue;
 
-import org.jf.util.IndentingWriter;
 import org.jf.dexlib2.iface.value.ArrayEncodedValue;
 import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.util.IndentingWriter;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -47,7 +47,7 @@ public class ArrayEncodedValueAdaptor {
         writer.write('\n');
         writer.indent(4);
         boolean first = true;
-        for (EncodedValue encodedValue: values) {
+        for (EncodedValue encodedValue : values) {
             if (!first) {
                 writer.write(",\n");
             }

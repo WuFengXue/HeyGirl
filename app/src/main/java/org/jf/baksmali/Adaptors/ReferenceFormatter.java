@@ -29,7 +29,11 @@
 package org.jf.baksmali.Adaptors;
 
 import org.jf.dexlib2.ReferenceType;
-import org.jf.dexlib2.iface.reference.*;
+import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.Reference;
+import org.jf.dexlib2.iface.reference.StringReference;
+import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.dexlib2.util.ReferenceUtil;
 import org.jf.util.IndentingWriter;
 import org.jf.util.StringUtils;
@@ -47,16 +51,16 @@ public class ReferenceFormatter {
                                       Reference reference) throws IOException {
         switch (referenceType) {
             case ReferenceType.STRING:
-                writeStringReference(writer, ((StringReference)reference).getString());
+                writeStringReference(writer, ((StringReference) reference).getString());
                 return;
             case ReferenceType.TYPE:
-                writer.write(((TypeReference)reference).getType());
+                writer.write(((TypeReference) reference).getType());
                 return;
             case ReferenceType.METHOD:
-                ReferenceUtil.writeMethodDescriptor(writer, (MethodReference)reference);
+                ReferenceUtil.writeMethodDescriptor(writer, (MethodReference) reference);
                 return;
             case ReferenceType.FIELD:
-                ReferenceUtil.writeFieldDescriptor(writer, (FieldReference)reference);
+                ReferenceUtil.writeFieldDescriptor(writer, (FieldReference) reference);
                 return;
             default:
                 throw new IllegalStateException("Unknown reference type");

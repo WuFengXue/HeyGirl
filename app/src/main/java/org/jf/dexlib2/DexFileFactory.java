@@ -32,18 +32,27 @@
 package org.jf.dexlib2;
 
 import com.google.common.io.ByteStreams;
+
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 import org.jf.dexlib2.dexbacked.DexBackedOdexFile;
 import org.jf.dexlib2.iface.DexFile;
 import org.jf.dexlib2.writer.pool.DexPool;
 import org.jf.util.ExceptionWithContext;
 
-import javax.annotation.Nonnull;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.annotation.Nonnull;
+
 public final class DexFileFactory {
+    private DexFileFactory() {
+    }
+
     @Nonnull
     public static DexBackedDexFile loadDexFile(String path, int api) throws IOException {
         return loadDexFile(new File(path), new Opcodes(api));
@@ -74,7 +83,7 @@ public final class DexFileFactory {
             } else if (fileLength > Integer.MAX_VALUE) {
                 throw new ExceptionWithContext("The classes.dex file in %s is too large to read in", dexFile.getName());
             }
-            byte[] dexBytes = new byte[(int)fileLength];
+            byte[] dexBytes = new byte[(int) fileLength];
             ByteStreams.readFully(zipFile.getInputStream(zipEntry), dexBytes);
             return new DexBackedDexFile(opcodes, dexBytes);
         } catch (IOException ex) {
@@ -114,8 +123,6 @@ public final class DexFileFactory {
     public static void writeDexFile(String path, DexFile dexFile) throws IOException {
         DexPool.writeTo(path, dexFile);
     }
-
-    private DexFileFactory() {}
 
     public static class NoClassesDexException extends ExceptionWithContext {
         public NoClassesDexException(Throwable cause) {

@@ -31,8 +31,9 @@ package org.jf.baksmali.Adaptors;
 import org.jf.baksmali.baksmaliOptions;
 import org.jf.util.IndentingWriter;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
+
+import javax.annotation.Nonnull;
 
 public class LabelMethodItem extends MethodItem {
     private final baksmaliOptions options;
@@ -54,7 +55,7 @@ public class LabelMethodItem extends MethodItem {
 
         if (result == 0) {
             if (methodItem instanceof LabelMethodItem) {
-                result = labelPrefix.compareTo(((LabelMethodItem)methodItem).labelPrefix);
+                result = labelPrefix.compareTo(((LabelMethodItem) methodItem).labelPrefix);
             }
         }
         return result;
@@ -69,7 +70,7 @@ public class LabelMethodItem extends MethodItem {
         if (!(o instanceof LabelMethodItem)) {
             return false;
         }
-        return this.compareTo((MethodItem)o) == 0;
+        return this.compareTo((MethodItem) o) == 0;
     }
 
 

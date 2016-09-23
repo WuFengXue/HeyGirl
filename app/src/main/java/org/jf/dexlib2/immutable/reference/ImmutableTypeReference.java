@@ -32,36 +32,17 @@
 package org.jf.dexlib2.immutable.reference;
 
 import com.google.common.collect.ImmutableList;
+
 import org.jf.dexlib2.base.reference.BaseTypeReference;
 import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.util.ImmutableConverter;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 public class ImmutableTypeReference extends BaseTypeReference implements ImmutableReference {
-    @Nonnull protected final String type;
-
-    public ImmutableTypeReference(String type) {
-        this.type = type;
-    }
-
-    @Nonnull
-    public static ImmutableTypeReference of(@Nonnull TypeReference typeReference) {
-        if (typeReference instanceof ImmutableTypeReference) {
-            return (ImmutableTypeReference)typeReference;
-        }
-        return new ImmutableTypeReference(typeReference.getType());
-    }
-
-    @Nonnull @Override public String getType() { return type; }
-
-    @Nonnull
-    public static ImmutableList<ImmutableTypeReference> immutableListOf(@Nullable List<? extends TypeReference> list) {
-        return CONVERTER.toList(list);
-    }
-
     private static final ImmutableConverter<ImmutableTypeReference, TypeReference> CONVERTER =
             new ImmutableConverter<ImmutableTypeReference, TypeReference>() {
                 @Override
@@ -75,4 +56,29 @@ public class ImmutableTypeReference extends BaseTypeReference implements Immutab
                     return ImmutableTypeReference.of(item);
                 }
             };
+    @Nonnull
+    protected final String type;
+
+    public ImmutableTypeReference(String type) {
+        this.type = type;
+    }
+
+    @Nonnull
+    public static ImmutableTypeReference of(@Nonnull TypeReference typeReference) {
+        if (typeReference instanceof ImmutableTypeReference) {
+            return (ImmutableTypeReference) typeReference;
+        }
+        return new ImmutableTypeReference(typeReference.getType());
+    }
+
+    @Nonnull
+    public static ImmutableList<ImmutableTypeReference> immutableListOf(@Nullable List<? extends TypeReference> list) {
+        return CONVERTER.toList(list);
+    }
+
+    @Nonnull
+    @Override
+    public String getType() {
+        return type;
+    }
 }

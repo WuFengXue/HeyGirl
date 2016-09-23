@@ -32,6 +32,7 @@
 package org.jf.baksmali;
 
 import com.google.common.collect.Lists;
+
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.InlineMethodResolver;
 import org.jf.dexlib2.util.SyntheticAccessorResolver;
@@ -59,8 +60,8 @@ public class baksmaliOptions {
     public List<String> bootClassPathEntries = Lists.newArrayList();
     public List<String> extraClassPathEntries = Lists.newArrayList();
 
-    public Map<String,String> resourceIdFileEntries = new HashMap<String,String>();
-    public Map<Integer,String> resourceIds = new HashMap<Integer,String>();
+    public Map<String, String> resourceIdFileEntries = new HashMap<String, String>();
+    public Map<Integer, String> resourceIds = new HashMap<Integer, String>();
 
     public boolean noParameterRegisters = false;
     public boolean useLocalsDirective = false;
@@ -92,7 +93,7 @@ public class baksmaliOptions {
     }
 
     public void setResourceIdFiles(String resourceIdFiles) {
-        for (String resourceIdFile: resourceIdFiles.split(":")) {
+        for (String resourceIdFile : resourceIdFiles.split(":")) {
             String[] entry = resourceIdFile.split("=");
             resourceIdFileEntries.put(entry[1], entry[0]);
         }

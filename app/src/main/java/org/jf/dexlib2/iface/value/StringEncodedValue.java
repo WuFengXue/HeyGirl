@@ -43,7 +43,8 @@ public interface StringEncodedValue extends EncodedValue {
      *
      * @return the string value
      */
-    @Nonnull String getValue();
+    @Nonnull
+    String getValue();
 
     /**
      * Returns a hashcode for this EncodedStringValue.
@@ -57,26 +58,30 @@ public interface StringEncodedValue extends EncodedValue {
      *
      * @return The hash code value for this EncodedStringValue
      */
-    @Override int hashCode();
+    @Override
+    int hashCode();
 
     /**
      * Compares this StringEncodedValue to another StringEncodedValue for equality.
      *
-     * This StringEncodedValue is equal to another StringEncodedValue if the values returned by getValue() are equal.
+     * This StringEncodedValue is equal to another StringEncodedValue if the values returned by
+     * getValue() are equal.
      *
      * @param o The object to be compared for equality with this StringEncodedValue
      * @return true if the specified object is equal to this StringEncodedValue
      */
-    @Override boolean equals(@Nullable Object o);
+    @Override
+    boolean equals(@Nullable Object o);
 
     /**
      * Compare this StringEncodedValue to another EncodedValue.
      *
-     * The comparison is first done on the return values of getValueType(). If the other value is another
-     * StringEncodedValue, the return values of getValue() are compared.
+     * The comparison is first done on the return values of getValueType(). If the other value is
+     * another StringEncodedValue, the return values of getValue() are compared.
      *
      * @param o The EncodedValue to compare with this StringEncodedValue
      * @return An integer representing the result of the comparison
      */
-    @Override int compareTo(@Nonnull EncodedValue o);
+    @Override
+    int compareTo(@Nonnull EncodedValue o);
 }

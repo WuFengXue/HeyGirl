@@ -36,156 +36,156 @@ import org.jf.util.ExceptionWithContext;
 import javax.annotation.Nonnull;
 
 public class BaseDexBuffer {
-	@Nonnull
-	/* package private */final byte[] buf;
-	private MemoryReader reader;
-	private int baseAddr;
+    @Nonnull
+    /* package private */ final byte[] buf;
+    private MemoryReader reader;
+    private int baseAddr;
 
-	public MemoryReader getReader() {
-		return reader;
-	}
+    public BaseDexBuffer(MemoryReader reader, int baseAddr) {
+        this.buf = null;
+        this.reader = reader;
+        this.baseAddr = baseAddr;
+    }
 
-	public int getBaseAddr() {
-		return baseAddr;
-	}
+    public BaseDexBuffer(@Nonnull byte[] buf) {
+        this.buf = buf;
+        this.reader = null;
+        this.baseAddr = 0;
+    }
 
-	public BaseDexBuffer(MemoryReader reader, int baseAddr) {
-		this.buf = null;
-		this.reader = reader;
-		this.baseAddr = baseAddr;
-	}
+    public MemoryReader getReader() {
+        return reader;
+    }
 
-	public BaseDexBuffer(@Nonnull byte[] buf) {
-		this.buf = buf;
-		this.reader = null;
-		this.baseAddr =0;
-	}
+    public int getBaseAddr() {
+        return baseAddr;
+    }
 
-	public int readSmallUint(int offset) {
-		if (this.reader == null) {
-			byte[] buf = this.buf;
-			int result = (buf[offset] & 0xff) | ((buf[offset + 1] & 0xff) << 8)
-					| ((buf[offset + 2] & 0xff) << 16)
-					| ((buf[offset + 3]) << 24);
-			if (result < 0) {
-				throw new ExceptionWithContext(
-						"Encountered small uint that is out of range at offset 0x%x",
-						offset);
-			}
-			return result;
-		} else {
-			byte[] buf = this.reader.readBytes(this.baseAddr + offset, 4);
-			int result = (buf[0] & 0xff) | ((buf[1] & 0xff) << 8)
-					| ((buf[2] & 0xff) << 16) | ((buf[3]) << 24);
-			if (result < 0) {
-				throw new ExceptionWithContext(
-						"Encountered small uint that is out of range at offset 0x%x",
-						offset);
-			}
-			return result;
-		}
-	}
+    public int readSmallUint(int offset) {
+        if (this.reader == null) {
+            byte[] buf = this.buf;
+            int result = (buf[offset] & 0xff) | ((buf[offset + 1] & 0xff) << 8)
+                    | ((buf[offset + 2] & 0xff) << 16)
+                    | ((buf[offset + 3]) << 24);
+            if (result < 0) {
+                throw new ExceptionWithContext(
+                        "Encountered small uint that is out of range at offset 0x%x",
+                        offset);
+            }
+            return result;
+        } else {
+            byte[] buf = this.reader.readBytes(this.baseAddr + offset, 4);
+            int result = (buf[0] & 0xff) | ((buf[1] & 0xff) << 8)
+                    | ((buf[2] & 0xff) << 16) | ((buf[3]) << 24);
+            if (result < 0) {
+                throw new ExceptionWithContext(
+                        "Encountered small uint that is out of range at offset 0x%x",
+                        offset);
+            }
+            return result;
+        }
+    }
 
-	public int readOptionalUint(int offset) {
-		if (this.reader == null) {
-			byte[] buf = this.buf;
-			int result = (buf[offset] & 0xff) | ((buf[offset + 1] & 0xff) << 8)
-					| ((buf[offset + 2] & 0xff) << 16)
-					| ((buf[offset + 3]) << 24);
-			if (result < -1) {
-				throw new ExceptionWithContext(
-						"Encountered optional uint that is out of range at offset 0x%x",
-						offset);
-			}
-			return result;
-		} else {
-			byte[] buf = this.reader.readBytes(this.baseAddr + offset, 4);
-			int result = (buf[0] & 0xff) | ((buf[1] & 0xff) << 8)
-					| ((buf[2] & 0xff) << 16) | ((buf[3]) << 24);
-			if (result < -1) {
-				throw new ExceptionWithContext(
-						"Encountered optional uint that is out of range at offset 0x%x",
-						offset);
-			}
-			return result;
-		}
-	}
+    public int readOptionalUint(int offset) {
+        if (this.reader == null) {
+            byte[] buf = this.buf;
+            int result = (buf[offset] & 0xff) | ((buf[offset + 1] & 0xff) << 8)
+                    | ((buf[offset + 2] & 0xff) << 16)
+                    | ((buf[offset + 3]) << 24);
+            if (result < -1) {
+                throw new ExceptionWithContext(
+                        "Encountered optional uint that is out of range at offset 0x%x",
+                        offset);
+            }
+            return result;
+        } else {
+            byte[] buf = this.reader.readBytes(this.baseAddr + offset, 4);
+            int result = (buf[0] & 0xff) | ((buf[1] & 0xff) << 8)
+                    | ((buf[2] & 0xff) << 16) | ((buf[3]) << 24);
+            if (result < -1) {
+                throw new ExceptionWithContext(
+                        "Encountered optional uint that is out of range at offset 0x%x",
+                        offset);
+            }
+            return result;
+        }
+    }
 
-	public int readUshort(int offset) {
-		if (this.reader == null) {
-			byte[] buf = this.buf;
-			return (buf[offset] & 0xff) | ((buf[offset + 1] & 0xff) << 8);
-		} else {
-			byte[] buf = this.reader.readBytes(this.baseAddr + offset, 2);
-			return (buf[0] & 0xff) | ((buf[1] & 0xff) << 8);
-		}
-	}
+    public int readUshort(int offset) {
+        if (this.reader == null) {
+            byte[] buf = this.buf;
+            return (buf[offset] & 0xff) | ((buf[offset + 1] & 0xff) << 8);
+        } else {
+            byte[] buf = this.reader.readBytes(this.baseAddr + offset, 2);
+            return (buf[0] & 0xff) | ((buf[1] & 0xff) << 8);
+        }
+    }
 
-	public int readUbyte(int offset) {
-		if (this.reader == null) {
-			return buf[offset] & 0xff;
-		} else {
-			return this.reader.readBytes(this.baseAddr + offset, 1)[0] & 0xff;
-		}
-	}
+    public int readUbyte(int offset) {
+        if (this.reader == null) {
+            return buf[offset] & 0xff;
+        } else {
+            return this.reader.readBytes(this.baseAddr + offset, 1)[0] & 0xff;
+        }
+    }
 
-	public long readLong(int offset) {
-		if (this.reader == null) {
-			byte[] buf = this.buf;
-			return (buf[offset] & 0xff) | ((buf[offset + 1] & 0xff) << 8)
-					| ((buf[offset + 2] & 0xff) << 16)
-					| ((buf[offset + 3] & 0xffL) << 24)
-					| ((buf[offset + 4] & 0xffL) << 32)
-					| ((buf[offset + 5] & 0xffL) << 40)
-					| ((buf[offset + 6] & 0xffL) << 48)
-					| (((long) buf[offset + 7]) << 56);
-		} else {
-			byte[] buf = this.reader.readBytes(this.baseAddr + offset, 8);
-			return (buf[0] & 0xff) | ((buf[1] & 0xff) << 8)
-					| ((buf[2] & 0xff) << 16) | ((buf[3] & 0xffL) << 24)
-					| ((buf[4] & 0xffL) << 32) | ((buf[5] & 0xffL) << 40)
-					| ((buf[6] & 0xffL) << 48) | (((long) buf[7]) << 56);
-		}
-	}
+    public long readLong(int offset) {
+        if (this.reader == null) {
+            byte[] buf = this.buf;
+            return (buf[offset] & 0xff) | ((buf[offset + 1] & 0xff) << 8)
+                    | ((buf[offset + 2] & 0xff) << 16)
+                    | ((buf[offset + 3] & 0xffL) << 24)
+                    | ((buf[offset + 4] & 0xffL) << 32)
+                    | ((buf[offset + 5] & 0xffL) << 40)
+                    | ((buf[offset + 6] & 0xffL) << 48)
+                    | (((long) buf[offset + 7]) << 56);
+        } else {
+            byte[] buf = this.reader.readBytes(this.baseAddr + offset, 8);
+            return (buf[0] & 0xff) | ((buf[1] & 0xff) << 8)
+                    | ((buf[2] & 0xff) << 16) | ((buf[3] & 0xffL) << 24)
+                    | ((buf[4] & 0xffL) << 32) | ((buf[5] & 0xffL) << 40)
+                    | ((buf[6] & 0xffL) << 48) | (((long) buf[7]) << 56);
+        }
+    }
 
-	public int readInt(int offset) {
-		if (this.reader == null) {
-			byte[] buf = this.buf;
-			return (buf[offset] & 0xff) | ((buf[offset + 1] & 0xff) << 8)
-					| ((buf[offset + 2] & 0xff) << 16)
-					| (buf[offset + 3] << 24);
-		} else {
-			byte[] buf = this.reader.readBytes(this.baseAddr + offset, 4);
-			return (buf[0] & 0xff) | ((buf[1] & 0xff) << 8)
-					| ((buf[2] & 0xff) << 16) | (buf[3] << 24);
-		}
-	}
+    public int readInt(int offset) {
+        if (this.reader == null) {
+            byte[] buf = this.buf;
+            return (buf[offset] & 0xff) | ((buf[offset + 1] & 0xff) << 8)
+                    | ((buf[offset + 2] & 0xff) << 16)
+                    | (buf[offset + 3] << 24);
+        } else {
+            byte[] buf = this.reader.readBytes(this.baseAddr + offset, 4);
+            return (buf[0] & 0xff) | ((buf[1] & 0xff) << 8)
+                    | ((buf[2] & 0xff) << 16) | (buf[3] << 24);
+        }
+    }
 
-	public int readShort(int offset) {
-		if (this.reader == null) {
-			byte[] buf = this.buf;
-			return (buf[offset] & 0xff) | (buf[offset + 1] << 8);
-		} else {
-			byte[] buf = this.reader.readBytes(this.baseAddr + offset, 2);
-			return (buf[0] & 0xff) | (buf[1] << 8);
-		}
-	}
+    public int readShort(int offset) {
+        if (this.reader == null) {
+            byte[] buf = this.buf;
+            return (buf[offset] & 0xff) | (buf[offset + 1] << 8);
+        } else {
+            byte[] buf = this.reader.readBytes(this.baseAddr + offset, 2);
+            return (buf[0] & 0xff) | (buf[1] << 8);
+        }
+    }
 
-	public int readByte(int offset) {
-		if (this.reader == null) {
-			return buf[offset];
-		} else {
-			return this.reader.readBytes(this.baseAddr + offset, 1)[0];
-		}
-	}
+    public int readByte(int offset) {
+        if (this.reader == null) {
+            return buf[offset];
+        } else {
+            return this.reader.readBytes(this.baseAddr + offset, 1)[0];
+        }
+    }
 
-	@Nonnull
-	public BaseDexReader readerAt(int offset) {
-		return new BaseDexReader<BaseDexBuffer>(this, offset);
-	}
+    @Nonnull
+    public BaseDexReader readerAt(int offset) {
+        return new BaseDexReader<BaseDexBuffer>(this, offset);
+    }
 
-	@Nonnull
-	protected byte[] getBuf() {
-		return buf;
-	}
+    @Nonnull
+    protected byte[] getBuf() {
+        return buf;
+    }
 }

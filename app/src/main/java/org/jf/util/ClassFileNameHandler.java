@@ -28,25 +28,33 @@
 
 package org.jf.util;
 
-import ds.tree.RadixTree;
-import ds.tree.RadixTreeImpl;
-
-import javax.annotation.Nonnull;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.IntBuffer;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nonnull;
+
+import ds.tree.RadixTree;
+import ds.tree.RadixTreeImpl;
+
 /**
- * This class checks for case-insensitive file systems, and generates file names based on a given class name, that are
- * guaranteed to be unique. When "colliding" class names are found, it appends a numeric identifier to the end of the
- * class name to distinguish it from another class with a name that differes only by case. i.e. a.smali and a_2.smali
+ * This class checks for case-insensitive file systems, and generates file names based on a given
+ * class name, that are guaranteed to be unique. When "colliding" class names are found, it appends
+ * a numeric identifier to the end of the class name to distinguish it from another class with a
+ * name that differes only by case. i.e. a.smali and a_2.smali
  */
 public class ClassFileNameHandler {
     // we leave an extra 10 characters to allow for a numeric suffix to be added, if it's needed
     private static final int MAX_FILENAME_LENGTH = 245;
-
+    private static Pattern reservedFileNameRegex = Pattern.compile("^CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]$",
+            Pattern.CASE_INSENSITIVE);
     private PackageNameEntry top;
     private String fileExtension;
     private boolean modifyWindowsReservedFilenames;
@@ -57,75 +65,10 @@ public class ClassFileNameHandler {
         this.modifyWindowsReservedFilenames = testForWindowsReservedFileNames(path);
     }
 
-    public File getUniqueFilenameForClass(String className) {
-        //class names should be passed in the normal dalvik style, with a leading L, a trailing ;, and using
-        //'/' as a separator.
-        if (className.charAt(0) != 'L' || className.charAt(className.length()-1) != ';') {
-            throw new RuntimeException("Not a valid dalvik class name");
-        }
-
-        int packageElementCount = 1;
-        for (int i=1; i<className.length()-1; i++) {
-            if (className.charAt(i) == '/') {
-                packageElementCount++;
-            }
-        }
-
-        String packageElement;
-        String[] packageElements = new String[packageElementCount];
-        int elementIndex = 0;
-        int elementStart = 1;
-        for (int i=1; i<className.length()-1; i++) {
-            if (className.charAt(i) == '/') {
-                //if the first char after the initial L is a '/', or if there are
-                //two consecutive '/'
-                if (i-elementStart==0) {
-                    throw new RuntimeException("Not a valid dalvik class name");
-                }
-
-                packageElement = className.substring(elementStart, i);
-
-                if (modifyWindowsReservedFilenames && isReservedFileName(packageElement)) {
-                    packageElement += "#";
-                }
-
-                int utf8Length = utf8Length(packageElement);
-                if (utf8Length > MAX_FILENAME_LENGTH) {
-                    packageElement = shortenPathComponent(packageElement, utf8Length - MAX_FILENAME_LENGTH);
-                }
-
-                packageElements[elementIndex++] = packageElement;
-                elementStart = ++i;
-            }
-        }
-
-        //at this point, we have added all the package elements to packageElements, but still need to add
-        //the final class name. elementStart should point to the beginning of the class name
-
-        //this will be true if the class ends in a '/', i.e. Lsome/package/className/;
-        if (elementStart >= className.length()-1) {
-            throw new RuntimeException("Not a valid dalvik class name");
-        }
-
-        packageElement = className.substring(elementStart, className.length()-1);
-        if (modifyWindowsReservedFilenames && isReservedFileName(packageElement)) {
-            packageElement += "#";
-        }
-
-        int utf8Length = utf8Length(packageElement) + utf8Length(fileExtension);
-        if (utf8Length > MAX_FILENAME_LENGTH) {
-            packageElement = shortenPathComponent(packageElement, utf8Length - MAX_FILENAME_LENGTH);
-        }
-
-        packageElements[elementIndex] = packageElement;
-
-        return top.addUniqueChild(packageElements, 0);
-    }
-
     private static int utf8Length(String str) {
         int utf8Length = 0;
-        int i=0;
-        while (i<str.length()) {
+        int i = 0;
+        while (i < str.length()) {
             int c = str.codePointAt(i);
             utf8Length += utf8Length(c);
             i += Character.charCount(c);
@@ -146,9 +89,9 @@ public class ClassFileNameHandler {
     }
 
     /**
-     * Shortens an individual file/directory name, removing the necessary number of code points
-     * from the middle of the string such that the utf-8 encoding of the string is at least
-     * bytesToRemove bytes shorter than the original.
+     * Shortens an individual file/directory name, removing the necessary number of code points from
+     * the middle of the string such that the utf-8 encoding of the string is at least bytesToRemove
+     * bytes shorter than the original.
      *
      * The removed codePoints in the middle of the string will be replaced with a # character.
      */
@@ -166,11 +109,11 @@ public class ClassFileNameHandler {
             throw new RuntimeException(ex);
         }
 
-        int midPoint = codePoints.length/2;
+        int midPoint = codePoints.length / 2;
         int delta = 0;
 
         int firstEnd = midPoint; // exclusive
-        int secondStart = midPoint+1; // inclusive
+        int secondStart = midPoint + 1; // inclusive
         int bytesRemoved = utf8Length(codePoints[midPoint]);
 
         // if we have an even number of codepoints, start by removing both middle characters,
@@ -194,11 +137,11 @@ public class ClassFileNameHandler {
         }
 
         StringBuilder sb = new StringBuilder();
-        for (int i=0; i<firstEnd; i++) {
+        for (int i = 0; i < firstEnd; i++) {
             sb.appendCodePoint(codePoints[i]);
         }
         sb.append('#');
-        for (int i=secondStart; i<codePoints.length; i++) {
+        for (int i = secondStart; i < codePoints.length; i++) {
             sb.appendCodePoint(codePoints[i]);
         }
 
@@ -208,7 +151,7 @@ public class ClassFileNameHandler {
     private static boolean testForWindowsReservedFileNames(File path) {
         String[] reservedNames = new String[]{"aux", "con", "com1", "com9", "lpt1", "com9"};
 
-        for (String reservedName: reservedNames) {
+        for (String reservedName : reservedNames) {
             File f = new File(path, reservedName + ".smali");
             if (f.exists()) {
                 continue;
@@ -228,10 +171,73 @@ public class ClassFileNameHandler {
         return false;
     }
 
-    private static Pattern reservedFileNameRegex = Pattern.compile("^CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]$",
-            Pattern.CASE_INSENSITIVE);
     private static boolean isReservedFileName(String className) {
         return reservedFileNameRegex.matcher(className).matches();
+    }
+
+    public File getUniqueFilenameForClass(String className) {
+        //class names should be passed in the normal dalvik style, with a leading L, a trailing ;, and using
+        //'/' as a separator.
+        if (className.charAt(0) != 'L' || className.charAt(className.length() - 1) != ';') {
+            throw new RuntimeException("Not a valid dalvik class name");
+        }
+
+        int packageElementCount = 1;
+        for (int i = 1; i < className.length() - 1; i++) {
+            if (className.charAt(i) == '/') {
+                packageElementCount++;
+            }
+        }
+
+        String packageElement;
+        String[] packageElements = new String[packageElementCount];
+        int elementIndex = 0;
+        int elementStart = 1;
+        for (int i = 1; i < className.length() - 1; i++) {
+            if (className.charAt(i) == '/') {
+                //if the first char after the initial L is a '/', or if there are
+                //two consecutive '/'
+                if (i - elementStart == 0) {
+                    throw new RuntimeException("Not a valid dalvik class name");
+                }
+
+                packageElement = className.substring(elementStart, i);
+
+                if (modifyWindowsReservedFilenames && isReservedFileName(packageElement)) {
+                    packageElement += "#";
+                }
+
+                int utf8Length = utf8Length(packageElement);
+                if (utf8Length > MAX_FILENAME_LENGTH) {
+                    packageElement = shortenPathComponent(packageElement, utf8Length - MAX_FILENAME_LENGTH);
+                }
+
+                packageElements[elementIndex++] = packageElement;
+                elementStart = ++i;
+            }
+        }
+
+        //at this point, we have added all the package elements to packageElements, but still need to add
+        //the final class name. elementStart should point to the beginning of the class name
+
+        //this will be true if the class ends in a '/', i.e. Lsome/package/className/;
+        if (elementStart >= className.length() - 1) {
+            throw new RuntimeException("Not a valid dalvik class name");
+        }
+
+        packageElement = className.substring(elementStart, className.length() - 1);
+        if (modifyWindowsReservedFilenames && isReservedFileName(packageElement)) {
+            packageElement += "#";
+        }
+
+        int utf8Length = utf8Length(packageElement) + utf8Length(fileExtension);
+        if (utf8Length > MAX_FILENAME_LENGTH) {
+            packageElement = shortenPathComponent(packageElement, utf8Length - MAX_FILENAME_LENGTH);
+        }
+
+        packageElements[elementIndex] = packageElement;
+
+        return top.addUniqueChild(packageElements, 0);
     }
 
     private abstract class FileSystemEntry {
@@ -308,7 +314,8 @@ public class ClassFileNameHandler {
     }
 
     /**
-     * A virtual group that groups together file system entries with the same name, differing only in case
+     * A virtual group that groups together file system entries with the same name, differing only
+     * in case
      */
     private class VirtualGroupEntry extends FileSystemEntry {
         //this contains the FileSystemEntries for all of the files/directories in this group
@@ -341,14 +348,14 @@ public class ClassFileNameHandler {
                 if (pathElementsIndex == pathElements.length - 1) {
                     return existingEntry.file;
                 } else {
-                    return existingEntry.addUniqueChild(pathElements, pathElementsIndex+1);
+                    return existingEntry.addUniqueChild(pathElements, pathElementsIndex + 1);
                 }
             }
 
             if (pathElementsIndex == pathElements.length - 1) {
                 String fileName;
                 if (!isCaseSensitive()) {
-                    fileName = pathElements[pathElementsIndex] + "." + (groupEntries.getSize()+1) + fileExtension;
+                    fileName = pathElements[pathElementsIndex] + "." + (groupEntries.getSize() + 1) + fileExtension;
                 } else {
                     fileName = elementName;
                 }
@@ -359,7 +366,7 @@ public class ClassFileNameHandler {
             } else {
                 String fileName;
                 if (!isCaseSensitive()) {
-                    fileName = pathElements[pathElementsIndex] + "." + (groupEntries.getSize()+1);
+                    fileName = pathElements[pathElementsIndex] + "." + (groupEntries.getSize() + 1);
                 } else {
                     fileName = elementName;
                 }
@@ -387,7 +394,7 @@ public class ClassFileNameHandler {
 
             try {
                 boolean result = testCaseSensitivity(path);
-                isCaseSensitive = result?1:0;
+                isCaseSensitive = result ? 1 : 0;
                 return result;
             } catch (IOException ex) {
                 return false;
@@ -400,7 +407,7 @@ public class ClassFileNameHandler {
             do {
                 f = new File(path, "test." + num);
                 f2 = new File(path, "TEST." + num++);
-            } while(f.exists() || f2.exists());
+            } while (f.exists() || f2.exists());
 
             try {
                 try {
@@ -409,7 +416,10 @@ public class ClassFileNameHandler {
                     writer.flush();
                     writer.close();
                 } catch (IOException ex) {
-                    try {f.delete();} catch (Exception ex2) {}
+                    try {
+                        f.delete();
+                    } catch (Exception ex2) {
+                    }
                     throw ex;
                 }
 
@@ -428,7 +438,7 @@ public class ClassFileNameHandler {
                     CharBuffer buf = CharBuffer.allocate(32);
                     FileReader reader = new FileReader(f2);
 
-                    while (reader.read(buf) != -1 && buf.length() < 4);
+                    while (reader.read(buf) != -1 && buf.length() < 4) ;
                     if (buf.length() == 4 && buf.toString().equals("test")) {
                         return false;
                     } else {
@@ -436,15 +446,21 @@ public class ClassFileNameHandler {
                         //FileReader should have thrown a FileNotFoundException. Otherwise, we should have opened
                         //the file and read in the string "test". It's remotely possible that someone else modified
                         //the file after we created it. Let's be safe and return false here as well
-                        assert(false);
+                        assert (false);
                         return false;
                     }
                 } catch (FileNotFoundException ex) {
                     return true;
                 }
             } finally {
-                try { f.delete(); } catch (Exception ex) {}
-                try { f2.delete(); } catch (Exception ex) {}
+                try {
+                    f.delete();
+                } catch (Exception ex) {
+                }
+                try {
+                    f2.delete();
+                } catch (Exception ex) {
+                }
             }
         }
 

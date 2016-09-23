@@ -32,31 +32,49 @@
 package org.jf.dexlib2.builder.instruction;
 
 import com.google.common.collect.ImmutableList;
+
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.builder.BuilderInstruction;
 import org.jf.dexlib2.iface.instruction.formats.ArrayPayload;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 public class BuilderArrayPayload extends BuilderInstruction implements ArrayPayload {
     public static final Opcode OPCODE = Opcode.ARRAY_PAYLOAD;
 
     protected final int elementWidth;
-    @Nonnull protected final List<Number> arrayElements;
+    @Nonnull
+    protected final List<Number> arrayElements;
 
     public BuilderArrayPayload(int elementWidth,
                                @Nullable List<Number> arrayElements) {
         super(OPCODE);
         this.elementWidth = elementWidth;
-        this.arrayElements = arrayElements==null?ImmutableList.<Number>of():arrayElements;
+        this.arrayElements = arrayElements == null ? ImmutableList.<Number>of() : arrayElements;
     }
 
-    @Override public int getElementWidth() { return elementWidth; }
-    @Nonnull @Override public List<Number> getArrayElements() { return arrayElements; }
+    @Override
+    public int getElementWidth() {
+        return elementWidth;
+    }
 
-    @Override public int getCodeUnits() { return 4 + (elementWidth * arrayElements.size() + 1) / 2; }
-    @Override public Format getFormat() { return OPCODE.format; }
+    @Nonnull
+    @Override
+    public List<Number> getArrayElements() {
+        return arrayElements;
+    }
+
+    @Override
+    public int getCodeUnits() {
+        return 4 + (elementWidth * arrayElements.size() + 1) / 2;
+    }
+
+    @Override
+    public Format getFormat() {
+        return OPCODE.format;
+    }
 }

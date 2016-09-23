@@ -34,9 +34,10 @@ package org.jf.dexlib2.iface.value;
 import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.dexlib2.iface.BasicAnnotation;
 
+import java.util.Set;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Set;
 
 /**
  * This class represents an encoded annotation value.
@@ -49,7 +50,8 @@ public interface AnnotationEncodedValue extends EncodedValue, BasicAnnotation {
      *
      * @return The type of this annotation
      */
-    @Nonnull String getType();
+    @Nonnull
+    String getType();
 
     /**
      * Gets a set of the name/value elements associated with this annotation.
@@ -58,7 +60,8 @@ public interface AnnotationEncodedValue extends EncodedValue, BasicAnnotation {
      *
      * @return A set of AnnotationElements
      */
-    @Nonnull Set<? extends AnnotationElement> getElements();
+    @Nonnull
+    Set<? extends AnnotationElement> getElements();
 
     /**
      * Returns a hashcode for this AnnotationEncodedValue.
@@ -73,18 +76,21 @@ public interface AnnotationEncodedValue extends EncodedValue, BasicAnnotation {
      *
      * @return The hash code value for this AnnotationEncodedValue
      */
-    @Override int hashCode();
+    @Override
+    int hashCode();
 
     /**
      * Compares this AnnotationEncodedValue to another AnnotationEncodedValue for equality.
      *
-     * This AnnotationEncodedValue is equal to another AnnotationEncodedValue if all of it's "fields" are equal. That
-     * is, if the return values getType() and getElements() are both equal.
+     * This AnnotationEncodedValue is equal to another AnnotationEncodedValue if all of it's
+     * "fields" are equal. That is, if the return values getType() and getElements() are both
+     * equal.
      *
      * @param o The object to be compared for equality with this AnnotationEncodedValue
      * @return true if the specified object is equal to this AnnotationEncodedValue
      */
-    @Override boolean equals(@Nullable Object o);
+    @Override
+    boolean equals(@Nullable Object o);
 
     /**
      * Compare this AnnotationEncodedValue to another EncodedValue.
@@ -96,5 +102,6 @@ public interface AnnotationEncodedValue extends EncodedValue, BasicAnnotation {
      * @param o The EncodedValue to compare with this AnnotationEncodedValue
      * @return An integer representing the result of the comparison
      */
-    @Override int compareTo(@Nonnull EncodedValue o);
+    @Override
+    int compareTo(@Nonnull EncodedValue o);
 }

@@ -32,11 +32,11 @@
 package org.jf.dexlib2.dexbacked;
 
 import com.google.common.io.ByteStreams;
+
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.dexbacked.raw.OdexHeaderItem;
 import org.jf.dexlib2.dexbacked.util.VariableSizeList;
 
-import javax.annotation.Nonnull;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileFilter;
@@ -46,135 +46,137 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 public class DexBackedOdexFile extends DexBackedDexFile {
-	private static final int DEPENDENCY_COUNT_OFFSET = 12;
-	private static final int DEPENDENCY_START_OFFSET = 16;
+    private static final int DEPENDENCY_COUNT_OFFSET = 12;
+    private static final int DEPENDENCY_START_OFFSET = 16;
 
-	private final byte[] odexBuf;
+    private final byte[] odexBuf;
 
-	public DexBackedOdexFile(Opcodes opcodes, MemoryDexFileItemPointer pointer,
-			MemoryReader reader) {
-		super(opcodes, pointer, reader);
-		this.odexBuf = null;
-	}
+    public DexBackedOdexFile(Opcodes opcodes, MemoryDexFileItemPointer pointer,
+                             MemoryReader reader) {
+        super(opcodes, pointer, reader);
+        this.odexBuf = null;
+    }
 
-	public DexBackedOdexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] odexBuf,
-			byte[] dexBuf) {
-		super(opcodes, dexBuf);
-		this.odexBuf = odexBuf;
-	}
+    public DexBackedOdexFile(@Nonnull Opcodes opcodes, @Nonnull byte[] odexBuf,
+                             byte[] dexBuf) {
+        super(opcodes, dexBuf);
+        this.odexBuf = odexBuf;
+    }
 
-	@Override
-	public boolean isOdexFile() {
-		return true;
-	}
+    public static DexBackedOdexFile fromInputStream(@Nonnull Opcodes opcodes,
+                                                    @Nonnull InputStream is) throws IOException {
+        if (!is.markSupported()) {
+            throw new IllegalArgumentException("InputStream must support mark");
+        }
+        is.mark(8);
+        byte[] partialHeader = new byte[8];
+        try {
+            ByteStreams.readFully(is, partialHeader);
+        } catch (EOFException ex) {
+            throw new NotADexFile("File is too short");
+        } finally {
+            is.reset();
+        }
 
-	public List<String> getDependencies() {
-		if (this.getReader() == null) {
-			final int dexOffset = OdexHeaderItem.getDexOffset(odexBuf);
-			final int dependencyOffset = OdexHeaderItem
-					.getDependenciesOffset(odexBuf) - dexOffset;
+        verifyMagic(partialHeader);
 
-			BaseDexBuffer buf = new BaseDexBuffer(this.buf);
-			int dependencyCount = buf.readInt(dependencyOffset
-					+ DEPENDENCY_COUNT_OFFSET);
+        is.reset();
+        byte[] odexBuf = new byte[OdexHeaderItem.ITEM_SIZE];
+        ByteStreams.readFully(is, odexBuf);
+        int dexOffset = OdexHeaderItem.getDexOffset(odexBuf);
+        if (dexOffset > OdexHeaderItem.ITEM_SIZE) {
+            ByteStreams.skipFully(is, dexOffset - OdexHeaderItem.ITEM_SIZE);
+        }
 
-			return new VariableSizeList<String>(this, dependencyOffset
-					+ DEPENDENCY_START_OFFSET, dependencyCount) {
-				@Override
-				protected String readNextItem(@Nonnull DexReader reader,
-						int index) {
-					int length = reader.readInt();
-					int offset = reader.getOffset();
-					reader.moveRelative(length + 20);
-					try {
-						return new String(DexBackedOdexFile.this.buf, offset,
-								length - 1, "US-ASCII");
-					} catch (UnsupportedEncodingException ex) {
-						throw new RuntimeException(ex);
-					}
-				}
-			};
-		} else {
-			File file = new File("/system/framework/");
-			File[] filelist = file.listFiles(new FileFilter() {
-				
-				@Override
-				public boolean accept(File pathname) {
-					// TODO Auto-generated method stub
-					if(pathname.getAbsolutePath().endsWith(".jar"))
-					   return true;
-					else 
-					   return false;
-				}
-			});
-			List<String> list = new ArrayList<String>(filelist.length);
-			for(int i = 0; i<filelist.length; i++){
-				list.add(filelist[i].getAbsolutePath());
-			}
-			return list;
-			
-		}
-	}
+        byte[] dexBuf = ByteStreams.toByteArray(is);
 
-	public static DexBackedOdexFile fromInputStream(@Nonnull Opcodes opcodes,
-			@Nonnull InputStream is) throws IOException {
-		if (!is.markSupported()) {
-			throw new IllegalArgumentException("InputStream must support mark");
-		}
-		is.mark(8);
-		byte[] partialHeader = new byte[8];
-		try {
-			ByteStreams.readFully(is, partialHeader);
-		} catch (EOFException ex) {
-			throw new NotADexFile("File is too short");
-		} finally {
-			is.reset();
-		}
+        return new DexBackedOdexFile(opcodes, odexBuf, dexBuf);
+    }
 
-		verifyMagic(partialHeader);
+    private static void verifyMagic(byte[] buf) {
+        if (!OdexHeaderItem.verifyMagic(buf)) {
+            StringBuilder sb = new StringBuilder("Invalid magic value:");
+            for (int i = 0; i < 8; i++) {
+                sb.append(String.format(" %02x", buf[i]));
+            }
+            throw new NotAnOdexFile(sb.toString());
+        }
+    }
 
-		is.reset();
-		byte[] odexBuf = new byte[OdexHeaderItem.ITEM_SIZE];
-		ByteStreams.readFully(is, odexBuf);
-		int dexOffset = OdexHeaderItem.getDexOffset(odexBuf);
-		if (dexOffset > OdexHeaderItem.ITEM_SIZE) {
-			ByteStreams.skipFully(is, dexOffset - OdexHeaderItem.ITEM_SIZE);
-		}
+    @Override
+    public boolean isOdexFile() {
+        return true;
+    }
 
-		byte[] dexBuf = ByteStreams.toByteArray(is);
+    public List<String> getDependencies() {
+        if (this.getReader() == null) {
+            final int dexOffset = OdexHeaderItem.getDexOffset(odexBuf);
+            final int dependencyOffset = OdexHeaderItem
+                    .getDependenciesOffset(odexBuf) - dexOffset;
 
-		return new DexBackedOdexFile(opcodes, odexBuf, dexBuf);
-	}
+            BaseDexBuffer buf = new BaseDexBuffer(this.buf);
+            int dependencyCount = buf.readInt(dependencyOffset
+                    + DEPENDENCY_COUNT_OFFSET);
 
-	private static void verifyMagic(byte[] buf) {
-		if (!OdexHeaderItem.verifyMagic(buf)) {
-			StringBuilder sb = new StringBuilder("Invalid magic value:");
-			for (int i = 0; i < 8; i++) {
-				sb.append(String.format(" %02x", buf[i]));
-			}
-			throw new NotAnOdexFile(sb.toString());
-		}
-	}
+            return new VariableSizeList<String>(this, dependencyOffset
+                    + DEPENDENCY_START_OFFSET, dependencyCount) {
+                @Override
+                protected String readNextItem(@Nonnull DexReader reader,
+                                              int index) {
+                    int length = reader.readInt();
+                    int offset = reader.getOffset();
+                    reader.moveRelative(length + 20);
+                    try {
+                        return new String(DexBackedOdexFile.this.buf, offset,
+                                length - 1, "US-ASCII");
+                    } catch (UnsupportedEncodingException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            };
+        } else {
+            File file = new File("/system/framework/");
+            File[] filelist = file.listFiles(new FileFilter() {
 
-	public int getOdexVersion() {
-		return OdexHeaderItem.getVersion(odexBuf);
-	}
+                @Override
+                public boolean accept(File pathname) {
+                    // TODO Auto-generated method stub
+                    if (pathname.getAbsolutePath().endsWith(".jar"))
+                        return true;
+                    else
+                        return false;
+                }
+            });
+            List<String> list = new ArrayList<String>(filelist.length);
+            for (int i = 0; i < filelist.length; i++) {
+                list.add(filelist[i].getAbsolutePath());
+            }
+            return list;
 
-	public static class NotAnOdexFile extends RuntimeException {
-		public NotAnOdexFile() {
-		}
+        }
+    }
 
-		public NotAnOdexFile(Throwable cause) {
-			super(cause);
-		}
+    public int getOdexVersion() {
+        return OdexHeaderItem.getVersion(odexBuf);
+    }
 
-		public NotAnOdexFile(String message) {
-			super(message);
-		}
+    public static class NotAnOdexFile extends RuntimeException {
+        public NotAnOdexFile() {
+        }
 
-		public NotAnOdexFile(String message, Throwable cause) {
-			super(message, cause);
-		}
-	}
+        public NotAnOdexFile(Throwable cause) {
+            super(cause);
+        }
+
+        public NotAnOdexFile(String message) {
+            super(message);
+        }
+
+        public NotAnOdexFile(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 }

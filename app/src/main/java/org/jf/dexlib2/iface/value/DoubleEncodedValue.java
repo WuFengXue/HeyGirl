@@ -56,12 +56,14 @@ public interface DoubleEncodedValue extends EncodedValue {
      * int hashCode = (int)(v^(v>>>32));
      * }</pre>
      *
-     * Note: This is slightly different than the definition of Double.hashCode(). This uses doubleToRawLongBits()
-     * instead of doubleToLongBits(), in order to preserve as much information as possible.
+     * Note: This is slightly different than the definition of Double.hashCode(). This uses
+     * doubleToRawLongBits() instead of doubleToLongBits(), in order to preserve as much information
+     * as possible.
      *
      * @return The hash code value for this EncodedDoubleValue
      */
-    @Override int hashCode();
+    @Override
+    int hashCode();
 
     /**
      * Compares this DoubleEncodedValue to another DoubleEncodedValue for equality.
@@ -69,21 +71,25 @@ public interface DoubleEncodedValue extends EncodedValue {
      * This DoubleEncodedValue is equal to another DoubleEncodedValue if the values returned by
      * getValue().doubleToRawLongBits() are equal.
      *
-     * Note: this isn't quite the same as getValue() == getValue(), due to various NaN issues and signed zero issues.
+     * Note: this isn't quite the same as getValue() == getValue(), due to various NaN issues and
+     * signed zero issues.
      *
      * @param o The object to be compared for equality with this DoubleEncodedValue
      * @return true if the specified object is equal to this DoubleEncodedValue
      */
-    @Override boolean equals(@Nullable Object o);
+    @Override
+    boolean equals(@Nullable Object o);
 
     /**
      * Compare this DoubleEncodedValue to another EncodedValue.
      *
-     * The comparison is first done on the return values of getValueType(), and then if the other value is another
-     * DoubleEncodedValue, the return values of getValue() are compared, using the semantics of Double.compare()
+     * The comparison is first done on the return values of getValueType(), and then if the other
+     * value is another DoubleEncodedValue, the return values of getValue() are compared, using the
+     * semantics of Double.compare()
      *
      * @param o The EncodedValue to compare with this DoubleEncodedValue
      * @return An integer representing the result of the comparison
      */
-    @Override int compareTo(@Nonnull EncodedValue o);
+    @Override
+    int compareTo(@Nonnull EncodedValue o);
 }

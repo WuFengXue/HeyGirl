@@ -32,26 +32,29 @@
 package org.jf.dexlib2.immutable.instruction;
 
 import com.google.common.collect.ImmutableList;
+
 import org.jf.dexlib2.Format;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.instruction.formats.ArrayPayload;
 import org.jf.util.ImmutableUtils;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 
 public class ImmutableArrayPayload extends ImmutableInstruction implements ArrayPayload {
     public static final Opcode OPCODE = Opcode.ARRAY_PAYLOAD;
 
     protected final int elementWidth;
-    @Nonnull protected final ImmutableList<Number> arrayElements;
+    @Nonnull
+    protected final ImmutableList<Number> arrayElements;
 
     public ImmutableArrayPayload(int elementWidth,
                                  @Nullable List<Number> arrayElements) {
         super(OPCODE);
         this.elementWidth = elementWidth;
-        this.arrayElements = arrayElements==null ? ImmutableList.<Number>of() : ImmutableList.copyOf(arrayElements);
+        this.arrayElements = arrayElements == null ? ImmutableList.<Number>of() : ImmutableList.copyOf(arrayElements);
     }
 
     public ImmutableArrayPayload(int elementWidth,
@@ -66,16 +69,31 @@ public class ImmutableArrayPayload extends ImmutableInstruction implements Array
     @Nonnull
     public static ImmutableArrayPayload of(ArrayPayload instruction) {
         if (instruction instanceof ImmutableArrayPayload) {
-            return (ImmutableArrayPayload)instruction;
+            return (ImmutableArrayPayload) instruction;
         }
         return new ImmutableArrayPayload(
                 instruction.getElementWidth(),
                 instruction.getArrayElements());
     }
 
-    @Override public int getElementWidth() { return elementWidth; }
-    @Nonnull @Override public List<Number> getArrayElements() { return arrayElements; }
+    @Override
+    public int getElementWidth() {
+        return elementWidth;
+    }
 
-    @Override public int getCodeUnits() { return 4 + (elementWidth * arrayElements.size() + 1) / 2; }
-    @Override public Format getFormat() { return OPCODE.format; }
+    @Nonnull
+    @Override
+    public List<Number> getArrayElements() {
+        return arrayElements;
+    }
+
+    @Override
+    public int getCodeUnits() {
+        return 4 + (elementWidth * arrayElements.size() + 1) / 2;
+    }
+
+    @Override
+    public Format getFormat() {
+        return OPCODE.format;
+    }
 }

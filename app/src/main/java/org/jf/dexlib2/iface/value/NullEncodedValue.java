@@ -50,7 +50,8 @@ public interface NullEncodedValue extends EncodedValue {
      *
      * @return The hash code value for this EncodedNullValue
      */
-    @Override int hashCode();
+    @Override
+    int hashCode();
 
     /**
      * Compares this NullEncodedValue to another NullEncodedValue for equality.
@@ -60,16 +61,18 @@ public interface NullEncodedValue extends EncodedValue {
      * @param o The object to be compared for equality with this NullEncodedValue
      * @return true if the specified object is equal to this NullEncodedValue
      */
-    @Override boolean equals(@Nullable Object o);
+    @Override
+    boolean equals(@Nullable Object o);
 
     /**
      * Compare this NullEncodedValue to another EncodedValue.
      *
-     * The comparison is first done on the return values of getValueType(). If the other value is another
-     * NullEncodedValue, then 0 is returned.
+     * The comparison is first done on the return values of getValueType(). If the other value is
+     * another NullEncodedValue, then 0 is returned.
      *
      * @param o The EncodedValue to compare with this NullEncodedValue
      * @return An integer representing the result of the comparison
      */
-    @Override int compareTo(@Nonnull EncodedValue o);
+    @Override
+    int compareTo(@Nonnull EncodedValue o);
 }

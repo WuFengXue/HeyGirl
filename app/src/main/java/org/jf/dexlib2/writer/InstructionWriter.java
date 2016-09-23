@@ -34,36 +34,58 @@ package org.jf.dexlib2.writer;
 import org.jf.dexlib2.ReferenceType;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
-import org.jf.dexlib2.iface.instruction.formats.*;
+import org.jf.dexlib2.iface.instruction.formats.ArrayPayload;
+import org.jf.dexlib2.iface.instruction.formats.Instruction10t;
+import org.jf.dexlib2.iface.instruction.formats.Instruction10x;
+import org.jf.dexlib2.iface.instruction.formats.Instruction11n;
+import org.jf.dexlib2.iface.instruction.formats.Instruction11x;
+import org.jf.dexlib2.iface.instruction.formats.Instruction12x;
+import org.jf.dexlib2.iface.instruction.formats.Instruction20bc;
+import org.jf.dexlib2.iface.instruction.formats.Instruction20t;
+import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
+import org.jf.dexlib2.iface.instruction.formats.Instruction21ih;
+import org.jf.dexlib2.iface.instruction.formats.Instruction21lh;
+import org.jf.dexlib2.iface.instruction.formats.Instruction21s;
+import org.jf.dexlib2.iface.instruction.formats.Instruction21t;
+import org.jf.dexlib2.iface.instruction.formats.Instruction22b;
+import org.jf.dexlib2.iface.instruction.formats.Instruction22c;
+import org.jf.dexlib2.iface.instruction.formats.Instruction22s;
+import org.jf.dexlib2.iface.instruction.formats.Instruction22t;
+import org.jf.dexlib2.iface.instruction.formats.Instruction22x;
+import org.jf.dexlib2.iface.instruction.formats.Instruction23x;
+import org.jf.dexlib2.iface.instruction.formats.Instruction30t;
+import org.jf.dexlib2.iface.instruction.formats.Instruction31c;
+import org.jf.dexlib2.iface.instruction.formats.Instruction31i;
+import org.jf.dexlib2.iface.instruction.formats.Instruction31t;
+import org.jf.dexlib2.iface.instruction.formats.Instruction32x;
+import org.jf.dexlib2.iface.instruction.formats.Instruction35c;
+import org.jf.dexlib2.iface.instruction.formats.Instruction3rc;
+import org.jf.dexlib2.iface.instruction.formats.Instruction51l;
+import org.jf.dexlib2.iface.instruction.formats.PackedSwitchPayload;
+import org.jf.dexlib2.iface.instruction.formats.SparseSwitchPayload;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.StringReference;
 import org.jf.dexlib2.iface.reference.TypeReference;
 import org.jf.util.ExceptionWithContext;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 public class InstructionWriter<StringRef extends StringReference, TypeRef extends TypeReference,
         FieldRefKey extends FieldReference, MethodRefKey extends MethodReference> {
-    @Nonnull private final DexDataWriter writer;
-    @Nonnull private final StringSection<?, StringRef> stringSection;
-    @Nonnull private final TypeSection<?, ?, TypeRef> typeSection;
-    @Nonnull private final FieldSection<?, ?, FieldRefKey, ?> fieldSection;
-    @Nonnull private final MethodSection<?, ?, ?, MethodRefKey, ?> methodSection;
-
-    @Nonnull static <StringRef extends StringReference, TypeRef extends TypeReference, FieldRefKey extends FieldReference, MethodRefKey extends MethodReference>
-            InstructionWriter<StringRef, TypeRef, FieldRefKey, MethodRefKey>
-            makeInstructionWriter(
-                @Nonnull DexDataWriter writer,
-                @Nonnull StringSection<?, StringRef> stringSection,
-                @Nonnull TypeSection<?, ?, TypeRef> typeSection,
-                @Nonnull FieldSection<?, ?, FieldRefKey, ?> fieldSection,
-                @Nonnull MethodSection<?, ?, ?, MethodRefKey, ?> methodSection) {
-        return new InstructionWriter<StringRef, TypeRef, FieldRefKey, MethodRefKey>(
-                writer, stringSection, typeSection, fieldSection, methodSection);
-    }
+    @Nonnull
+    private final DexDataWriter writer;
+    @Nonnull
+    private final StringSection<?, StringRef> stringSection;
+    @Nonnull
+    private final TypeSection<?, ?, TypeRef> typeSection;
+    @Nonnull
+    private final FieldSection<?, ?, FieldRefKey, ?> fieldSection;
+    @Nonnull
+    private final MethodSection<?, ?, ?, MethodRefKey, ?> methodSection;
 
     InstructionWriter(@Nonnull DexDataWriter writer,
                       @Nonnull StringSection<?, StringRef> stringSection,
@@ -75,6 +97,23 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
         this.typeSection = typeSection;
         this.fieldSection = fieldSection;
         this.methodSection = methodSection;
+    }
+
+    @Nonnull
+    static <StringRef extends StringReference, TypeRef extends TypeReference, FieldRefKey extends FieldReference, MethodRefKey extends MethodReference>
+    InstructionWriter<StringRef, TypeRef, FieldRefKey, MethodRefKey>
+    makeInstructionWriter(
+            @Nonnull DexDataWriter writer,
+            @Nonnull StringSection<?, StringRef> stringSection,
+            @Nonnull TypeSection<?, ?, TypeRef> typeSection,
+            @Nonnull FieldSection<?, ?, FieldRefKey, ?> fieldSection,
+            @Nonnull MethodSection<?, ?, ?, MethodRefKey, ?> methodSection) {
+        return new InstructionWriter<StringRef, TypeRef, FieldRefKey, MethodRefKey>(
+                writer, stringSection, typeSection, fieldSection, methodSection);
+    }
+
+    private static int packNibbles(int a, int b) {
+        return (b << 4) | a;
     }
 
     public void write(@Nonnull Instruction10t instruction) {
@@ -346,22 +385,22 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
             writer.writeInt(elements.size());
             switch (instruction.getElementWidth()) {
                 case 1:
-                    for (Number element: elements) {
+                    for (Number element : elements) {
                         writer.write(element.byteValue());
                     }
                     break;
                 case 2:
-                    for (Number element: elements) {
+                    for (Number element : elements) {
                         writer.writeShort(element.shortValue());
                     }
                     break;
                 case 4:
-                    for (Number element: elements) {
+                    for (Number element : elements) {
                         writer.writeInt(element.intValue());
                     }
                     break;
                 case 8:
-                    for (Number element: elements) {
+                    for (Number element : elements) {
                         writer.writeLong(element.longValue());
                     }
                     break;
@@ -380,10 +419,10 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
             writer.writeUbyte(instruction.getOpcode().value >> 8);
             List<? extends SwitchElement> elements = instruction.getSwitchElements();
             writer.writeUshort(elements.size());
-            for (SwitchElement element: elements) {
+            for (SwitchElement element : elements) {
                 writer.writeInt(element.getKey());
             }
-            for (SwitchElement element: elements) {
+            for (SwitchElement element : elements) {
                 writer.writeInt(element.getOffset());
             }
         } catch (IOException ex) {
@@ -401,7 +440,7 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
                 writer.writeInt(0);
             } else {
                 writer.writeInt(elements.get(0).getKey());
-                for (SwitchElement element: elements) {
+                for (SwitchElement element : elements) {
                     writer.writeInt(element.getOffset());
                 }
             }
@@ -410,20 +449,16 @@ public class InstructionWriter<StringRef extends StringReference, TypeRef extend
         }
     }
 
-    private static int packNibbles(int a, int b) {
-        return (b << 4) | a;
-    }
-
     private int getReferenceIndex(ReferenceInstruction referenceInstruction) {
         switch (referenceInstruction.getOpcode().referenceType) {
             case ReferenceType.FIELD:
-                return fieldSection.getItemIndex((FieldRefKey)referenceInstruction.getReference());
+                return fieldSection.getItemIndex((FieldRefKey) referenceInstruction.getReference());
             case ReferenceType.METHOD:
-                return methodSection.getItemIndex((MethodRefKey)referenceInstruction.getReference());
+                return methodSection.getItemIndex((MethodRefKey) referenceInstruction.getReference());
             case ReferenceType.STRING:
-                return stringSection.getItemIndex((StringRef)referenceInstruction.getReference());
+                return stringSection.getItemIndex((StringRef) referenceInstruction.getReference());
             case ReferenceType.TYPE:
-                return typeSection.getItemIndex((TypeRef)referenceInstruction.getReference());
+                return typeSection.getItemIndex((TypeRef) referenceInstruction.getReference());
             default:
                 throw new ExceptionWithContext("Unknown reference type: %d",
                         referenceInstruction.getOpcode().referenceType);

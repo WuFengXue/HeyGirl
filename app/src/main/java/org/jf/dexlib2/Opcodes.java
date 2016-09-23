@@ -33,8 +33,9 @@ package org.jf.dexlib2;
 
 import com.google.common.collect.Maps;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
+
+import javax.annotation.Nullable;
 
 public class Opcodes {
     private final Opcode[] opcodesByValue;
@@ -44,7 +45,7 @@ public class Opcodes {
         opcodesByValue = new Opcode[256];
         opcodesByName = Maps.newHashMap();
 
-        for (Opcode opcode: Opcode.values()) {
+        for (Opcode opcode : Opcode.values()) {
             if (!opcode.format.isPayloadFormat) {
                 if (api <= opcode.getMaxApi() && api >= opcode.getMinApi()) {
                     opcodesByValue[opcode.value] = opcode;

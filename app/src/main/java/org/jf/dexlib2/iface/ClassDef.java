@@ -33,15 +33,16 @@ package org.jf.dexlib2.iface;
 
 import org.jf.dexlib2.iface.reference.TypeReference;
 
+import java.util.Set;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Set;
 
 /**
  * This class represents a class definition.
  *
- * It also acts as a TypeReference to itself. Any equality/comparison is based on its identity as a TypeReference,
- * and shouldn't take into account anything other than the type of this class.
+ * It also acts as a TypeReference to itself. Any equality/comparison is based on its identity as a
+ * TypeReference, and shouldn't take into account anything other than the type of this class.
  */
 public interface ClassDef extends TypeReference {
     /**
@@ -51,12 +52,15 @@ public interface ClassDef extends TypeReference {
      *
      * @return The class type
      */
-    @Override @Nonnull String getType();
+    @Override
+    @Nonnull
+    String getType();
 
     /**
      * Gets the access flags for this class.
      *
-     * This will be a combination of the AccessFlags.* flags that are marked as compatible for use with a class.
+     * This will be a combination of the AccessFlags.* flags that are marked as compatible for use
+     * with a class.
      *
      * @return The access flags for this class
      */
@@ -69,24 +73,27 @@ public interface ClassDef extends TypeReference {
      *
      * @return The superclass of this class
      */
-    @Nullable String getSuperclass();
+    @Nullable
+    String getSuperclass();
 
     /**
      * Gets a set of the interfaces that this class implements.
      *
      * @return A set of the interfaces that this class implements
      */
-    @Nonnull Set<String> getInterfaces();
+    @Nonnull
+    Set<String> getInterfaces();
 
     /**
      * Gets the name of the primary source file that this class is defined in, if available.
      *
-     * This will be the default source file associated with all methods defined in this class. This can be overridden
-     * for sections of an individual method with the SetSourceFile debug item.
+     * This will be the default source file associated with all methods defined in this class. This
+     * can be overridden for sections of an individual method with the SetSourceFile debug item.
      *
      * @return The name of the primary source file for this class, or null if not available
      */
-    @Nullable String getSourceFile();
+    @Nullable
+    String getSourceFile();
 
     /**
      * Gets a set of the annotations that are applied to this class.
@@ -95,7 +102,8 @@ public interface ClassDef extends TypeReference {
      *
      * @return A set of the annotations that are applied to this class
      */
-    @Nonnull Set<? extends Annotation> getAnnotations();
+    @Nonnull
+    Set<? extends Annotation> getAnnotations();
 
     /**
      * Gets the static fields that are defined by this class.
@@ -104,7 +112,8 @@ public interface ClassDef extends TypeReference {
      *
      * @return The static fields that are defined by this class
      */
-    @Nonnull Iterable<? extends Field> getStaticFields();
+    @Nonnull
+    Iterable<? extends Field> getStaticFields();
 
     /**
      * Gets the instance fields that are defined by this class.
@@ -113,22 +122,25 @@ public interface ClassDef extends TypeReference {
      *
      * @return The instance fields that are defined by this class
      */
-    @Nonnull Iterable<? extends Field> getInstanceFields();
+    @Nonnull
+    Iterable<? extends Field> getInstanceFields();
 
     /**
      * Gets all the fields that are defined by this class.
      *
      * This is a convenience method that combines getStaticFields() and getInstanceFields()
      *
-     * The returned fields may be in any order. I.e. It's not safe to assume that all instance fields will come after
-     * all static fields.
+     * The returned fields may be in any order. I.e. It's not safe to assume that all instance
+     * fields will come after all static fields.
      *
-     * Note that there typically should not be any duplicate fields between the two, but some versions of
-     * dalvik inadvertently allow duplicate static/instance fields, and are supported here for completeness
+     * Note that there typically should not be any duplicate fields between the two, but some
+     * versions of dalvik inadvertently allow duplicate static/instance fields, and are supported
+     * here for completeness
      *
      * @return A set of the fields that are defined by this class
      */
-    @Nonnull Iterable<? extends Field> getFields();
+    @Nonnull
+    Iterable<? extends Field> getFields();
 
     /**
      * Gets the direct methods that are defined by this class.
@@ -137,7 +149,8 @@ public interface ClassDef extends TypeReference {
      *
      * @return The direct methods that are defined by this class.
      */
-    @Nonnull Iterable<? extends Method> getDirectMethods();
+    @Nonnull
+    Iterable<? extends Method> getDirectMethods();
 
     /**
      * Gets the virtual methods that are defined by this class.
@@ -146,20 +159,23 @@ public interface ClassDef extends TypeReference {
      *
      * @return The virtual methods that are defined by this class.
      */
-    @Nonnull Iterable<? extends Method> getVirtualMethods();
+    @Nonnull
+    Iterable<? extends Method> getVirtualMethods();
 
     /**
      * Gets all the methods that are defined by this class.
      *
      * This is a convenience method that combines getDirectMethods() and getVirtualMethods().
      *
-     * The returned methods may be in any order. I.e. It's not safe to assume that all virtual methods will come after
-     * all direct methods.
+     * The returned methods may be in any order. I.e. It's not safe to assume that all virtual
+     * methods will come after all direct methods.
      *
-     * Note that there typically should not be any duplicate methods between the two, but some versions of
-     * dalvik inadvertently allow duplicate direct/virtual methods, and are supported here for completeness
+     * Note that there typically should not be any duplicate methods between the two, but some
+     * versions of dalvik inadvertently allow duplicate direct/virtual methods, and are supported
+     * here for completeness
      *
      * @return An iterable of the methods that are defined by this class.
      */
-    @Nonnull Iterable<? extends Method> getMethods();
+    @Nonnull
+    Iterable<? extends Method> getMethods();
 }
