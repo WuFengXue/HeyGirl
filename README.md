@@ -14,27 +14,27 @@ Changing the `com.zjdroid.invoke` action to `hey.girl`.
 
 - Dump dex information
 
-`adb shell am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"dump_dexinfo"}'`
+`am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"dump_dexinfo"}'`
  
 - Dump dex classes
 
-`adb shell am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"dump_class","dexpath":"*****"}'`
+`am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"dump_class","dexpath":"*****"}'`
  
 - Dump dex
 
-`adb shell am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"dump_dexfile","dexpath":"*****"}'`
+`am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"dump_dexfile","dexpath":"*****"}'`
  
 - Dump dex by baksmali
 
-`adb shell am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"backsmali","dexpath":"*****"}'`
+`am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"backsmali","dexpath":"*****"}'`
  
 - Dump memory
 
-`adb shell am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"dump_mem","start":1234567,"length":123}'`
+`am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"dump_mem","start":1234567,"length":123}'`
  
 - Dump stack trace information.                                                                                                                                                              
-`adb shell am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"dump_heap"}'`
+`am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"dump_heap"}'`
  
 - Run Lua script.
 
-`adb shell am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"invoke","filepath":"****"}'`
+`am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"invoke","filepath":"****"}'`
