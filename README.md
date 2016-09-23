@@ -22,11 +22,11 @@ Changing the `com.zjdroid.invoke` action to `hey.girl`.
  
 - Dump dex
 
-`adb shell am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"dump_dex","dexpath":"*****"}'`
+`adb shell am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"dump_dexfile","dexpath":"*****"}'`
  
 - Dump dex by baksmali
 
-`adb shell am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"baksmali","dexpath":"*****"}'`
+`adb shell am broadcast -a hey.girl --ei target [pid] --es cmd '{"action":"backsmali","dexpath":"*****"}'`
  
 - Dump memory
 
