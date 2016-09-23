@@ -30,11 +30,10 @@ typedef union JValue {
 
 #define LOGTAG "zjdroid"
 
-#define LOGW(...)  __android_log_print(ANDROID_LOG_DEBUG, LOGTAG,"W/" __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_DEBUG, LOGTAG,"E/" __VA_ARGS__)
-#define LOGV(...) __android_log_print(ANDROID_LOG_DEBUG, LOGTAG,"V/" __VA_ARGS__)
+#define LOGW(...)  __android_log_print(ANDROID_LOG_WARN, LOGTAG,"W/" __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOGTAG,"E/" __VA_ARGS__)
+#define LOGV(...) __android_log_print(ANDROID_LOG_ERROR, LOGTAG,"V/" __VA_ARGS__)
 #define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOGTAG,"D/" __VA_ARGS__)
-#define LOGVV(...)  __android_log_print(ANDROID_LOG_DEBUG, LOGTAG,"D/" __VA_ARGS__)
 
 #define pint(_x)  __android_log_print(ANDROID_LOG_DEBUG, "ELF","[%20s( %04d )]  %-30s = %d (0x%08x)\n",__FUNCTION__,__LINE__, #_x, (int)(_x), (int)(_x))
 #define puint(_x) __android_log_print(ANDROID_LOG_DEBUG, "ELF","[%20s( %04d )]  %-30s = %u (0x%08x)\n",__FUNCTION__,__LINE__, #_x, (unsigned int)(_x), (unsigned int)(_x))
